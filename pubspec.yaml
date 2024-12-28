@@ -38,6 +38,7 @@ dependencies:
   flutter_sliding_box: ^1.1.5
   flutter_sliding_panel: ^0.0.5
   flutter_sliding_up_panel: ^2.1.1
+  bottom_sheet_scaffold: ^0.1.9
 
 dev_dependencies:
   flutter_test:

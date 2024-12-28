@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_box/flutter_sliding_box.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
+import 'package:ride_app/discount_screen.dart';
 import 'package:ride_app/paymentMethod.dart';
 import 'package:ride_app/save_places_secreen.dart';
 import 'package:ride_app/sliding_box.dart';
@@ -234,7 +235,14 @@ class _HomeState extends State<Home> {
             ),
             subtitle: Text('Enter promo code'),
             trailing: Icon(Icons.card_giftcard),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).pop(); // Close the drawer
+              // Navigate to discount screen
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => DiscountScreen(),
+                // builder: (context) => MyHomePage(),
+              ));
+            },
           ),
           ListTile(
             title: Text(
