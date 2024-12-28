@@ -1,0 +1,64 @@
+{
+  "test-ride": {
+    "Technical issues": [
+      "Account or sig-in issues",
+      "Issue with promo code",
+      "Bank card issues",
+      "issue with ride report",
+      "othe issues"
+    ],
+    "Financial issues": [
+        "Ride never took place",
+        "I was charged twice/extra",
+        "Price charged",
+        "Unrecognized change",
+        "Other"
+    ],
+    "Dirver or vehicle feedback": [
+        "Issue with driver",
+        "Issue with car",
+        "Rides with children",
+        "Rides with pets",
+        "Postives feedback",
+        "Other"
+    ],
+    "Safety": [
+        "I was in traffic accident",
+        "Dangerous driving or traffic violation",
+        "I felt unsafe" 
+    ],
+    "Lost items": [
+        "Phone",
+        "Other"
+    ]
+  },
+
+  "ride": {
+    "Technical issues": {
+      "Account or sig-in issues": {
+        "link": "how to add change or delete account",
+        "description": "Tell us if there are any problems, we're here to help"
+      },
+      "Issue with promo code": {
+        "link": "How to use a promo code",
+        "description": "If yiur discount isn't working. send us the promo code and the error message"
+      },
+      "Bank card issues": {
+        "link": "How to add or delete cards",
+        "description": "if our instructions didn't help or don't cover your issue, contact us and we'll figure it out together"
+      },
+      "issue with ride report": {
+        "link": "How to get ride report",
+        "description": "If you followed the instructions but still aren't receiving a ride report, get in touch "
+      },
+      "othe issues": {
+        "description": "If you have any other questions, we're here to help"
+      }
+    },
+    "Financial issues": {},
+    "Dirver or vehicle feedback": {},
+    "Safety": {},
+    "Lost items": {},
+    "FAQ": {}
+  }
+}
