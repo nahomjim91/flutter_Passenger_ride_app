@@ -1,17 +1,17 @@
-import 'dart:ffi';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_box/flutter_sliding_box.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:ride_app/discount_screen.dart';
+import 'package:ride_app/passenger.dart';
 import 'package:ride_app/paymentMethod.dart';
 import 'package:ride_app/save_places_secreen.dart';
 import 'package:ride_app/sliding_box.dart';
 import 'package:ride_app/support_sreen.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
-
+  Passenger passenger;
+  Home({super.key, required this.passenger});
   @override
   State<Home> createState() => _HomeState();
 }
@@ -128,23 +128,32 @@ class _HomeState extends State<Home> {
                 CircleAvatar(
                   backgroundColor: Colors.grey.shade800,
                   radius: 40,
-                  child: Icon(Icons.camera_alt, color: Colors.white, size: 40),
+                  child: widget.passenger.profile_photo != null
+                      ? ClipOval(
+                          child: Image.network(
+                            widget.passenger.profile_photo!,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Icon(Icons.camera_alt, color: Colors.white, size: 40),
                 ),
                 SizedBox(width: 16),
-                const Column(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Selihom',
-                      style: TextStyle(
+                      widget.passenger.first_name,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
+                    const SizedBox(height: 4),
+                    const Text(
                       '5.0',
                       style: TextStyle(
                         fontSize: 14,
@@ -266,7 +275,18 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                },
+                icon: Icon(Icons.logout, color: Colors.grey)),
+          ],
+        ),
+      ),
       drawer: Drawer(
         child: drawerItems(),
       ),

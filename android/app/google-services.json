@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "752448966296",
+    "project_id": "rideshared-8e7be",
+    "storage_bucket": "rideshared-8e7be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752448966296:android:e8b9d9336d14b920060aed",
+        "android_client_info": {
+          "package_name": "com.Njim.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVgpFI90VjmtFYXO_BG14vg-BwyzCVWok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
