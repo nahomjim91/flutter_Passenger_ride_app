@@ -1,41 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/placeSearchWidget.dart';
 
-class Destination {
-  final String name;
-  final String location;
-
-  Destination(this.name, this.location);
-}
-
-final List<Destination> destinations = [
-  Destination('Your Location', 'Pick at your GPS location'),
-  Destination('Addis Ababa Stadium', 'Addis Ababa'),
-  Destination('Dember City Center', 'Bole, Addis Ababa'),
-  Destination('Century Mall', 'Bole, Addis Ababa'),
-  Destination('Bole International Airport', 'Bole, Addis Ababa'),
-];
-
-class LocationSearch extends StatefulWidget {
+class LocationSearchDoubleInput extends StatefulWidget {
   final TextEditingController locationDestinationInputController;
   final TextEditingController locationPickerInputController;
-  const LocationSearch(
+  final Function(Place?) onPickupPlaceChanged; // Callback for pickup place
+  final Function(Place?)
+      onDestinationPlaceChanged; // Callback for destination place
+
+  Place? pickupPlace;
+  Place? destinationPlace;
+  LocationSearchDoubleInput(
       {Key? key,
       required this.locationDestinationInputController,
-      required this.locationPickerInputController})
+      required this.locationPickerInputController,
+      required this.onPickupPlaceChanged,
+      required this.onDestinationPlaceChanged,
+      required this.pickupPlace,
+      required this.destinationPlace})
       : super(key: key);
   @override
-  _LocationSearchState createState() => _LocationSearchState();
+  _LocationSearchDoubleInputState createState() =>
+      _LocationSearchDoubleInputState();
 }
 
-class _LocationSearchState extends State<LocationSearch> {
+class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
   late bool pickerLocationFocused = false;
   late bool destinationLocationFocused = true;
   FocusNode pickerLocationFocusNode = FocusNode();
   FocusNode destinationLocationFocusNode = FocusNode();
+  List<Place> _places = [];
 
   @override
   void initState() {
     super.initState();
+
+    widget.locationDestinationInputController.text =
+        widget.destinationPlace?.displayName ?? '';
+    widget.locationPickerInputController.text =
+        widget.pickupPlace?.displayName ?? '';
     widget.locationDestinationInputController.addListener(() {
       setState(() {});
     });
@@ -46,6 +49,12 @@ class _LocationSearchState extends State<LocationSearch> {
       setState(() {
         pickerLocationFocused = pickerLocationFocusNode.hasFocus;
         destinationLocationFocused = !pickerLocationFocused;
+      });
+    });
+    destinationLocationFocusNode.addListener(() {
+      setState(() {
+        destinationLocationFocused = destinationLocationFocusNode.hasFocus;
+        pickerLocationFocused = !destinationLocationFocused;
       });
     });
   }
@@ -116,6 +125,15 @@ class _LocationSearchState extends State<LocationSearch> {
                                     )
                                   : null,
                             ),
+                            onChanged: (value) async {
+                              if (value.isEmpty) {
+                                setState(() {
+                                  _places = [];
+                                });
+                              } else {
+                                _places = (await searchPlaces(value)) ?? [];
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -199,6 +217,16 @@ class _LocationSearchState extends State<LocationSearch> {
                                     )
                                   : null,
                             ),
+                            focusNode: destinationLocationFocusNode,
+                            onChanged: (value) async {
+                              if (value.isEmpty) {
+                                setState(() {
+                                  _places = [];
+                                });
+                              } else {
+                                _places = (await searchPlaces(value)) ?? [];
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -233,15 +261,42 @@ class _LocationSearchState extends State<LocationSearch> {
           Container(
             height: 400, // Set a fixed height for the list
             child: ListView.builder(
-              itemCount: destinations.length,
+              itemCount: _places.length,
               itemBuilder: (context, index) {
+                final place = _places[index];
                 return ListTile(
-                  title: Text(destinations[index].name),
-                  subtitle: Text(destinations[index].location),
-                  onTap: () {
-                    // Handle destination selection
-                  },
-                );
+                    leading: const Icon(Icons.location_on),
+                    title: Text(place.displayName),
+                    subtitle: Text(
+                        '${place.latitude.toStringAsFixed(4)}, ${place.longitude.toStringAsFixed(4)}'),
+                    onTap: () {
+                      setState(() {
+                        if (!destinationLocationFocused) {
+                          debugPrint('Destination location focused');
+                          widget.destinationPlace = place;
+                          widget.locationDestinationInputController.text =
+                              place.displayName;
+                          widget.onDestinationPlaceChanged(
+                              place); // Notify the parent
+
+                          FocusScope.of(context).unfocus();
+                          destinationLocationFocused = false;
+                          _places = [];
+                        } else if (!pickerLocationFocused) {
+                          debugPrint('Picker location focused');
+                          widget.pickupPlace = place;
+                          widget.locationPickerInputController.text =
+                              place.displayName;
+                          widget
+                              .onPickupPlaceChanged(place); // Notify the parent
+
+                          FocusScope.of(context).unfocus();
+                          pickerLocationFocused = false;
+                        }
+                        debugPrint(
+                            'Selected place: ${place.displayName}\nCoordinates: ${place.latitude.toStringAsFixed(4)}, ${place.longitude.toStringAsFixed(4)}');
+                      });
+                    });
               },
             ),
           ),

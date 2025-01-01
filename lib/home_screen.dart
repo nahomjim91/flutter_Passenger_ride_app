@@ -2,9 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_box/flutter_sliding_box.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:ride_app/discount_screen.dart';
+import 'package:ride_app/map.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/paymentMethod.dart';
+import 'package:ride_app/placeSearchWidget.dart';
 import 'package:ride_app/save_places_secreen.dart';
 import 'package:ride_app/sliding_box.dart';
 import 'package:ride_app/support_sreen.dart';
@@ -19,6 +22,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final SlidingPanelController _historyController = SlidingPanelController();
   bool _isHistoryPanelVisible = false; // To control panel visibility
+  Place? pickupPlace;
+  Place? destinationPlace;
 
   @override
   initState() {
@@ -272,6 +277,12 @@ class _HomeState extends State<Home> {
         ],
       );
 
+  void handleLocationPicked(String address, LatLng coordinates) {
+    print("Selected Address: $address");
+    print("Coordinates: ${coordinates.latitude}, ${coordinates.longitude}");
+    // Perform any additional actions with the received data
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -293,9 +304,13 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: [
           // Map here
-
+          MapCustome(
+            onLocationPicked: handleLocationPicked,
+          ),
           // sliding box
-          SlidingBoxDemo(),
+          SlidingBoxDemo(
+              
+          ),
           _isHistoryPanelVisible ? _historyWidget() : const SizedBox(),
           // SlidingBoxDemo2()
         ],

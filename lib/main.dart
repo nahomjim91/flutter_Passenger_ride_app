@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ride_app/auth_page.dart';
-import 'package:ride_app/home_screen.dart';
-import 'package:ride_app/poeSignup.dart';
-import 'package:ride_app/ride_booking_screen.dart';
-import 'package:ride_app/signup_screen.dart';
+
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';

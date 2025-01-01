@@ -5,7 +5,7 @@ import 'package:ride_app/firebaseUtillies.dart';
 import 'package:ride_app/home_screen.dart';
 import 'package:ride_app/loginOrSignup.dart';
 import 'package:ride_app/passenger.dart';
-import 'package:ride_app/poeSignup.dart';
+import 'package:ride_app/poeHome..dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -42,6 +42,7 @@ class _AuthPageState extends State<AuthPage> {
                     passenger.last_name == 'Unknown') {
                   return DataCustomize(passenger: passenger);
                 } else {
+                  // return HomePage(); // for mapp showing 
                   return Home(passenger: passenger);
                 }
               } else {
