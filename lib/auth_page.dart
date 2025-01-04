@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_app/dataCustomize.dart';
-import 'package:ride_app/firebaseUtillies.dart';
+import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/home_screen.dart';
 import 'package:ride_app/loginOrSignup.dart';
 import 'package:ride_app/passenger.dart';

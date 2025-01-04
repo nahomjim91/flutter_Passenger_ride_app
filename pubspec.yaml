@@ -38,6 +38,7 @@ dependencies:
   flutter_sliding_panel: ^0.0.5
   flutter_sliding_up_panel: ^2.1.1
   bottom_sheet_scaffold: ^0.1.9
+  modal_bottom_sheet: ^3.0.0
 
   http: ^0.13.6
   intl: ^0.18.0

@@ -15,7 +15,7 @@
 // }
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ride_app/firebaseUtillies.dart';
+import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/passenger.dart';
 
 class AuthService {

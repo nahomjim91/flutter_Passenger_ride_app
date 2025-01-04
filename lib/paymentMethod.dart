@@ -25,6 +25,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Payment methods'),
+        elevation: 1,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

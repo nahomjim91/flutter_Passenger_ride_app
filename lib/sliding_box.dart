@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
-import 'package:ride_app/location_picker.dart';
+import 'package:ride_app/locationPicker2InputFiled.dart';
 import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/yourTrip.dart';
 
 class SlidingBoxDemo extends StatefulWidget {
   const SlidingBoxDemo({super.key});
@@ -55,238 +56,144 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        if (currentFlow == 'Start')
-          SlidingPanel.scrollableContent(
-            controller: _controller,
-            config: SlidingPanelConfig(
-              anchorPosition: 70,
-              expandPosition: MediaQuery.of(context).size.height - 100,
+        SlidingPanel.scrollableContent(
+          controller: _controller,
+          config: SlidingPanelConfig(
+            anchorPosition: 70,
+            expandPosition: MediaQuery.of(context).size.height - 100,
+          ),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15),
+              topRight: Radius.circular(15),
             ),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
+          ),
+          panelContentBuilder: (controller, physics) => Container(
+            alignment: Alignment.topCenter,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
               ),
             ),
-            panelContentBuilder: (controller, physics) => Container(
-              alignment: Alignment.topCenter,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
-                ),
-              ),
-              child: isExpanded
-                  ? LocationSearchDoubleInput(
-                      locationDestinationInputController:
-                          _locationDestinationInputController,
-                      locationPickerInputController:
-                          _locationPickerInputController,
-                      pickupPlace: pickupPlace,
-                      destinationPlace: destinationPlace,
-                      onPickupPlaceChanged: (place) {
-                        setState(() {
-                          pickupPlace = place; // Update the parent state
-                        });
-                        if (pickupPlace != null && destinationPlace != null) {
-                          _controller.anchor();
-                          currentFlow = "Your Trip";
-                        }
-                        ;
-                      },
-                      onDestinationPlaceChanged: (place) {
-                        setState(() {
-                          destinationPlace = place; // Update the parent state
-                        });
-                        if (pickupPlace != null && destinationPlace != null) {
-                          _controller.anchor();
-                          currentFlow = "Your Trip";
-                        }
-                      },
-                    )
-                  : Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            setState(() {
-                              isExpanded = true;
-                            });
-                            _controller.expand();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[350],
-                            elevation: 3,
-                            shadowColor: Colors.black.withOpacity(0.2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 20),
+            child: isExpanded
+                ? LocationSearchDoubleInput(
+                    locationDestinationInputController:
+                        _locationDestinationInputController,
+                    locationPickerInputController:
+                        _locationPickerInputController,
+                    pickupPlace: pickupPlace,
+                    destinationPlace: destinationPlace,
+                    onPickupPlaceChanged: (place) {
+                      setState(() {
+                        pickupPlace = place; // Update the parent state
+                      });
+                      if (pickupPlace != null && destinationPlace != null) {
+                        _controller.anchor();
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => Yourtrip(
+                            pickupPlace: pickupPlace,
+                            destinationPlace: destinationPlace,
                           ),
-                          child: isUp
-                              ? const Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(Icons.directions_car),
-                                        SizedBox(width: 20),
-                                        Text(
-                                          'Where to?',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Icon(
-                                      Icons.arrow_forward,
-                                      color: Colors.black54,
-                                      size: 20,
-                                    ),
-                                  ],
-                                )
-                              : const Row(
-                                  children: [
-                                    SizedBox(width: 20),
-                                    Text(
-                                      'Where to?',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        ));
+                      }
+                      ;
+                    },
+                    onDestinationPlaceChanged: (place) {
+                      setState(() {
+                        destinationPlace = place; // Update the parent state
+                      });
+                      if (pickupPlace != null && destinationPlace != null) {
+                        _controller.anchor();
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => Yourtrip(
+                            pickupPlace: pickupPlace,
+                            destinationPlace: destinationPlace,
+                          ),
+                        ));
+                      }
+                    },
+                  )
+                : Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          setState(() {
+                            isExpanded = true;
+                          });
+                          _controller.expand();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[350],
+                          elevation: 3,
+                          shadowColor: Colors.black.withOpacity(0.2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 20),
                         ),
-                        // const Spacer(),
-                        LocationGrid(),
-                      ],
-                    ),
+                        child: isUp
+                            ? const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.directions_car),
+                                      SizedBox(width: 20),
+                                      Text(
+                                        'Where to?',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.black54,
+                                    size: 20,
+                                  ),
+                                ],
+                              )
+                            : const Row(
+                                children: [
+                                  SizedBox(width: 20),
+                                  Text(
+                                    'Where to?',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                      // const Spacer(),
+                      LocationGrid(),
+                    ],
+                  ),
+          ),
+          leading: Container(
+            width: 50,
+            height: 8,
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(100),
             ),
-            leading: Container(
-              width: 50,
-              height: 8,
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: ElevatedButton(onPressed: () {}, child: Container()),
-            ),
-          )
-        else if (currentFlow == 'Your Trip')
-          buildBottomContainer(),
+            child: ElevatedButton(onPressed: () {}, child: Container()),
+          ),
+        )
       ],
     );
   }
-
-  Widget buildBottomContainer() {
-    return Stack(
-  children: [
-    Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Icon(Icons.arrow_back, color: Colors.black),
-                      ),
-                      SizedBox(width: 16),
-                      Text(
-                        'YOUR TRIP',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: Icon(Icons.location_on, color: Colors.red),
-                        title: Text('General Wingate Street'),
-                        subtitle: Text('Estimated time: 8:55 AM'),
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.location_on),
-                        title: Text('Dembel City Center'),
-                        trailing: Text('Stops'),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 16),
-                        child: Row(
-                          children: [
-                            Icon(Icons.directions_bus),
-                            SizedBox(width: 8),
-                            Text('Economy - Br170'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  'Request',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  ],
-);  }
 }
 
 class LocationGrid extends StatefulWidget {

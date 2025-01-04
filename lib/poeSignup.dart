@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ride_app/auth_service.dart';
 import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/inputFiled.dart';
-import 'package:ride_app/firebaseUtillies.dart';
+import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/poeLogin.dart';
 import 'package:ride_app/signup_screen.dart';
