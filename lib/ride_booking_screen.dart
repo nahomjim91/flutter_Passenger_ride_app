@@ -413,6 +413,7 @@ class _RideBookingScreenState extends State<RideBookingScreen> {
       ),
     );
   }
+
 }
 
 class Destination {

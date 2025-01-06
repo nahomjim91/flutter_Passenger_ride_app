@@ -3,7 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:ride_app/Pages/requestingRide.dart';
+import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/car.dart';
+import 'package:ride_app/compont/paymentMethod.dart';
+import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/locationPicker.dart';
 import 'package:ride_app/placeSearchWidget.dart';
 
@@ -25,6 +29,18 @@ class _TripDetailsState extends State<TripDetails> {
   bool isExpanded = false;
   bool isUp = false;
 
+  Place pointA = Place(
+    displayName: 'Point A',
+    latitude: 9.00427798077372,
+    longitude: 38.7679495460327,
+  );
+
+  Place pointB = Place(
+    displayName: 'Point B',
+    latitude: 9.0079232,
+    longitude: 38.7678208,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -35,12 +51,6 @@ class _TripDetailsState extends State<TripDetails> {
       setState(() {
         if (_controller.value.position >=
             _controller.value.anchorPosition + 20) {
-          // debugPrint(
-          //     "anchorPosition" + _controller.value.anchorPosition.toString());
-          // debugPrint(
-          //     "expoandPosotion" + _controller.value.expandPosition.toString());
-          // debugPrint(
-          //     "current Position" + _controller.value.position.toString());
           isExpanded = true;
           // isUp = false;
         } else {
@@ -89,15 +99,45 @@ class _TripDetailsState extends State<TripDetails> {
                 ),
                 child: isExpanded ? _Details() : _smallDetails()),
           ]),
-          leading: Container(
-            width: 50,
-            height: 8,
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: ElevatedButton(onPressed: () {}, child: Container()),
+          leading: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: EdgeInsets.fromLTRB(15, 0, 0, 0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 2,
+                      blurRadius: 4,
+                      offset: const Offset(
+                          0, 0), // Shadow position, 0,0 means all sides
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ),
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 8,
+                  margin: EdgeInsets.fromLTRB(0, 0, 0, 5),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: ElevatedButton(onPressed: () {}, child: Container()),
+                ),
+              ),
+            ],
           ),
         ),
         Positioned(
@@ -128,7 +168,10 @@ class _TripDetailsState extends State<TripDetails> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Navigator.of(context).pushNamed("paymentMethod");
+                      showPaymentMethod(context, paymentOption: 'cash');
+                    },
                     icon: Icon(Icons.add_card_outlined, color: Colors.black54),
                     padding: EdgeInsets.zero,
                   ),
@@ -151,7 +194,11 @@ class _TripDetailsState extends State<TripDetails> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => RequestingRide(
+                              destinationPlace: pointB, pickupPlace: pointA)));
+                    },
                   ),
                 ),
                 SizedBox(width: 12),
@@ -163,7 +210,13 @@ class _TripDetailsState extends State<TripDetails> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (_controller.status == SlidingPanelStatus.anchored) {
+                        _controller.expand();
+                      } else {
+                        _controller.anchor();
+                      }
+                    },
                     icon: Icon(Icons.tune, color: Colors.black54),
                     padding: EdgeInsets.zero,
                   ),
@@ -195,49 +248,7 @@ class _TripDetailsState extends State<TripDetails> {
           const SizedBox(
             height: 5,
           ),
-          // Row(
-          //   children: [
-          //     Container(
-          //       padding: EdgeInsets.all(8),
-          //       decoration: BoxDecoration(
-          //         color: Colors.red,
-          //         borderRadius: BorderRadius.circular(8),
-          //       ),
-          //       child: Icon(Icons.directions_run, color: Colors.white),
-          //     ),
-          //     SizedBox(width: 12),
-          //     Column(
-          //       crossAxisAlignment: CrossAxisAlignment.start,
-          //       children: [
-          //         Text('Pickup', style: TextStyle(color: Colors.grey)),
-          //         Text(widget.pickupPlace!.displayName,
-          //             style: TextStyle(fontWeight: FontWeight.bold)),
-          //       ],
-          //     ),
-          //   ],
-          // ),
-          // SizedBox(height: 20),
-          // // Destination details
-          // Row(
-          //   children: [
-          //     Icon(Icons.flag, color: Colors.black),
-          //     SizedBox(width: 12),
-          //     Column(
-          //       crossAxisAlignment: CrossAxisAlignment.start,
-          //       children: [
-          //         Text('~17 min • arriving at 8:51 AM'),
-          //         Text(widget.destinationPlace!.displayName,
-          //             style: TextStyle(fontWeight: FontWeight.bold)),
-          //       ],
-          //     ),
-          //     Spacer(),
-          //     TextButton(
-          //       child: Text('Stops'),
-          //       onPressed: () {},
-          //     ),
-          //   ],
-          // ),
-          _addressPointes(
+          addressPointes(
             title: "Pickup",
             subtitle: widget.pickupPlace!.displayName,
             icon: Container(
@@ -267,8 +278,7 @@ class _TripDetailsState extends State<TripDetails> {
           Container(
               padding: EdgeInsets.fromLTRB(40, 0, 0, 0),
               child: const Divider()),
-
-          _addressPointes(
+          addressPointes(
               title: "~ 14 min",
               subtitle: widget.destinationPlace!.displayName,
               icon: Container(
@@ -317,7 +327,7 @@ class _TripDetailsState extends State<TripDetails> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (widget.pickupPlace != null)
-                  _addressPointes(
+                  addressPointes(
                     title: "Pickup",
                     subtitle: widget.pickupPlace!.displayName,
                     icon: Container(
@@ -339,7 +349,7 @@ class _TripDetailsState extends State<TripDetails> {
                   child: const Divider(height: 1),
                 ),
                 if (widget.destinationPlace != null)
-                  _addressPointes(
+                  addressPointes(
                     title: "~ 14 min",
                     subtitle: widget.destinationPlace!.displayName,
                     icon: Container(
@@ -372,23 +382,33 @@ class _TripDetailsState extends State<TripDetails> {
   }
 
   Widget _buildPaymentSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).pushNamed("paymentMethod");
-        },
+    return GestureDetector(
+      onTap: () {
+        // Navigator.of(context).pushNamed("paymentMethod");
+        showPaymentMethod(context);
+      },
+      child: Container(
+        padding: EdgeInsets.fromLTRB(20, 15, 0, 15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
+        ),
         child: Row(
           children: [
-            const Expanded(
-              child: const Column(
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Change payment method"),
-                  Text("Cash"),
+                  Text(
+                    "Change payment method",
+                    style: TextStyle(
+                        color: Colors.grey[600], fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "Cash",
+                    style: TextStyle(
+                        color: Colors.grey[600], fontWeight: FontWeight.w600),
+                  ),
                 ],
               ),
             ),
@@ -411,23 +431,46 @@ class _TripDetailsState extends State<TripDetails> {
 
   Widget _buildInstructionsSection() {
     return Container(
+      padding: EdgeInsets.fromLTRB(20, 15, 0, 15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(25),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-              title: const Text("Leave instructions for driver"),
-              trailing: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.chevron_right_sharp))),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          GestureDetector(
+              onTap: () => showInstructionForDriver(context),
+              child: Row(children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                    child: Text(
+                      "Leave instructions for driver",
+                      style: TextStyle(
+                          color: Colors.grey[600], fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.chevron_right_sharp))
+              ])),
+          // showAvatarModalBottomSheet(),
+          const Padding(
+            padding: const EdgeInsets.fromLTRB(0, 10, 20, 10),
             child: const Divider(height: 1),
           ),
-          const ListTile(
-            title: Text("Request for someone else"),
+          GestureDetector(
+            onTap: () => showContact(context),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+              child: Text(
+                "Request for someone else",
+                style: TextStyle(
+                    color: Colors.grey[600], fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ],
       ),
@@ -457,89 +500,6 @@ class _TripDetailsState extends State<TripDetails> {
           setState(() => widget.destinationPlace = newPlace);
         }
       },
-    );
-  }
-
-  Widget _addressPointes({
-    required String title,
-    required String subtitle,
-    required Widget icon,
-    required bool enabledMapButton,
-    required Function onTap,
-  }) {
-    return ListTile(
-      onTap: () => onTap(),
-      title: Row(
-        children: [
-          icon,
-          SizedBox(width: 12),
-          Expanded(
-            // Ensures the text doesn't overflow beyond its allocated space
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                      fontSize: 14,
-                      color:
-                          Colors.grey[600]), // Optional styling for the title
-                ),
-                Text(
-                  subtitle,
-                  maxLines: 1, // Restrict to one line
-                  overflow:
-                      TextOverflow.ellipsis, // Add ellipsis if text overflows
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.grey[700] // Optional styling for subtitle
-                      ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          if (enabledMapButton)
-            Container(
-              padding: EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                color: Colors.grey[300],
-              ),
-              child: TextButton(
-                child: Text('Stops'),
-                onPressed: () {},
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  void showLocationPicker(
-    BuildContext context,
-    TextEditingController controller,
-    Place? place,
-    Function(Place?) onPlaceSelected, // Add this callback
-  ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      enableDrag: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => SingleChildScrollView(
-        controller: ModalScrollController.of(context),
-        child: LocationPicker(
-          inputController: controller,
-          searchPlace: place,
-          saveSearchPlace: (newPlace) {
-            onPlaceSelected(newPlace); // Call the callback
-          },
-        ),
-      ),
     );
   }
 }

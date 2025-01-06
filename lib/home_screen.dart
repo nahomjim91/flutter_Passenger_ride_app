@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:ride_app/Pages/Home.dart';
 import 'package:ride_app/discount_screen.dart';
-import 'package:ride_app/paymentMethod.dart';
+import 'package:ride_app/paymentScreen.dart';
 
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/yourTrip.dart';
@@ -29,11 +29,13 @@ class _HomeState extends State<Home> {
             onGenerateRoute: (RouteSettings settings) {
               switch (settings.name) {
                 case 'home':
-                  return MaterialPageRoute(builder: (_) => HomePage());
+                  return MaterialPageRoute(
+                      builder: (_) => HomePage(passenger: widget.passenger));
                 case 'paymentMethod':
                   return MaterialPageRoute(builder: (_) => PaymentMethod());
                 case 'discounts':
                   return MaterialPageRoute(builder: (_) => DiscountScreen());
+
                 default:
                   return MaterialPageRoute(
                     builder: (_) => const Center(child: Text('Page not found')),

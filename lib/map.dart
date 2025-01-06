@@ -188,30 +188,6 @@ class _MapCustomeState extends State<MapCustome> {
             ),
           ],
         ),
-        Positioned(
-          bottom: 16,
-          left: 16,
-          right: 16,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Text(
-              _selectedAddress,
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
       ],
     );
   }

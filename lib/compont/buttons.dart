@@ -60,3 +60,66 @@ Widget ButtonWitGoogle(isloading, toggleLoading) {
     ),
   );
 }
+
+Widget addressPointes(
+    {required String? title,
+    required String subtitle,
+    required Widget icon,
+    required bool enabledMapButton,
+    required Function onTap,
+    bool? enabledtrailing}) {
+  return ListTile(
+    onTap: () => onTap(),
+    style: ListTileStyle.list,
+    title: Row(
+      children: [
+        icon,
+        SizedBox(width: 12),
+        Expanded(
+          // Ensures the text doesn't overflow beyond its allocated space
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title != null)
+                Text(
+                  title,
+                  style: TextStyle(
+                      fontSize: 14,
+                      color:
+                          Colors.grey[600]), // Optional styling for the title
+                ),
+              Text(
+                subtitle,
+                maxLines: 1, // Restrict to one line
+                overflow:
+                    TextOverflow.ellipsis, // Add ellipsis if text overflows
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.grey[700] // Optional styling for subtitle
+                    ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        if (enabledMapButton)
+          Container(
+            padding: EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              color: Colors.grey[300],
+            ),
+            child: TextButton(
+              child: Text('Stops'),
+              onPressed: () {},
+            ),
+          ),
+      ],
+    ),
+    trailing:
+        (enabledtrailing ?? false) ? const Icon(Icons.arrow_forward_ios) : null,
+  );
+}

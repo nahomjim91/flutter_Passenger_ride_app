@@ -94,15 +94,7 @@ class _DiscountScreenState extends State<DiscountScreen> {
     );
   }
 
-//  return Container(
-//           padding: const EdgeInsets.all(16),
 
-//           child:
-//               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-//             Text('Promo Code'),
-//           ]),
-//         );
-//       },
   @override
   Widget _buildClickableItem({
     required IconData icon,

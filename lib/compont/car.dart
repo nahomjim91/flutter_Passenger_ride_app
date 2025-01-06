@@ -21,6 +21,24 @@ class CarSelectionWidget extends StatefulWidget {
 }
 
 class _CarSelectionWidgetState extends State<CarSelectionWidget> {
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(
+      viewportFraction: widget.isDetails
+          ? 0.9
+          : 0.3, // Show more of next/previous cards in compact view
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   final List<CarOption> cars = [
     CarOption(
       image: 'assets/images/economy.png',
@@ -39,22 +57,35 @@ class _CarSelectionWidgetState extends State<CarSelectionWidget> {
     ),
   ];
 
-  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: cars
-            .map((car) => widget.isDetails
-                ? DetailedCarView(car: car)
-                : CarCard(
+    if (widget.isDetails) {
+      return SizedBox(
+        height: 300, // Adjust based on your needs
+        child: PageView.builder(
+          controller: _pageController,
+          itemCount: cars.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: DetailedCarView(car: cars[index]),
+            );
+          },
+        ),
+      );
+    } else {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: cars
+              .map((car) => CarCard(
                     image: car.image,
                     typeService: car.typeService,
                     price: car.price,
                   ))
-            .toList(),
-      ),
-    );
+              .toList(),
+        ),
+      );
+    }
   }
 }
 

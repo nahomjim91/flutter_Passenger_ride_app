@@ -254,10 +254,10 @@ class _LocationBoxState extends State<LocationBox> {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        minWidth: 120,
+        minWidth: 100,
         maxWidth: widget.isSmall
-            ? 180
-            : 200, // Increased maxWidth to allow for longer names
+            ? 140
+            : 180, // Increased maxWidth to allow for longer names
         maxHeight: 120,
       ),
       margin: EdgeInsets.all(8),
