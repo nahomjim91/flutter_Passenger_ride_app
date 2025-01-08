@@ -169,7 +169,7 @@ class _LocationPickerState extends State<LocationPicker> {
         child: const Text(
           'Map',
           style: TextStyle(
-            color: Colors.black87,
+            color: Theme.of(context).primaryColor,
             fontSize: 14.0,
             fontWeight: FontWeight.w500,
           ),
