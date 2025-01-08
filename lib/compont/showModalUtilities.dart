@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:ride_app/locationPicker.dart';
+import 'package:ride_app/map.dart';
 import 'package:ride_app/placeSearchWidget.dart';
 
 void showContact(BuildContext context) {
@@ -90,7 +91,8 @@ void showContact(BuildContext context) {
   );
 }
 
-void showInstructionForDriver(BuildContext context) {
+void showInstructionForDriver(BuildContext context, fallbackFunction) {
+  TextEditingController controller =  TextEditingController();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -116,7 +118,9 @@ void showInstructionForDriver(BuildContext context) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
+                  controller: controller,
                   decoration: InputDecoration(
+                    
                     hintStyle: TextStyle(
                         fontWeight: FontWeight.bold, color: Colors.grey),
                     hintText: 'Leave instructions for driver',
@@ -132,6 +136,7 @@ void showInstructionForDriver(BuildContext context) {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
+                    fallbackFunction(controller.text);
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

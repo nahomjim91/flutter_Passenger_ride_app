@@ -5,12 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/tripDetails.dart';
 
 class RequestingRide extends StatefulWidget {
-  RequestingRide(
-      {super.key, required this.destinationPlace, required this.pickupPlace});
-  Place destinationPlace;
-  Place pickupPlace;
+  RequestingRide({super.key, required this.rquestRide});
+
+  RequestRide rquestRide;
 
   @override
   State<RequestingRide> createState() => _RequestingRideState();
@@ -295,7 +295,7 @@ class _RequestingRideState extends State<RequestingRide> {
           children: [
             selectorButton(
               title: "Pickup",
-              subtitle: widget.pickupPlace!.displayName,
+              subtitle: widget.rquestRide.pickupPlace!.displayName,
               icon: Container(
                 width: 36,
                 height: 38,
@@ -311,10 +311,10 @@ class _RequestingRideState extends State<RequestingRide> {
                 showLocationPicker(
                   context,
                   _locationPickerInputController,
-                  widget.pickupPlace,
+                  widget.rquestRide.pickupPlace,
                   (Place? newPlace) {
                     setState(() {
-                      widget.pickupPlace = newPlace!;
+                      widget.rquestRide.pickupPlace = newPlace!;
                     });
                   },
                 );
@@ -342,10 +342,10 @@ class _RequestingRideState extends State<RequestingRide> {
                 showLocationPicker(
                   context,
                   _locationDestinationInputController,
-                  widget.destinationPlace,
+                  widget.rquestRide.destinationPlace,
                   (Place? newPlace) {
                     setState(() {
-                      widget.destinationPlace = newPlace!;
+                      widget.rquestRide.destinationPlace = newPlace!;
                     });
                   },
                 );
@@ -356,7 +356,7 @@ class _RequestingRideState extends State<RequestingRide> {
                 child: const Divider(height: 32)),
             selectorButton(
               title: "Destination",
-              subtitle: widget.destinationPlace.displayName,
+              subtitle: widget.rquestRide.destinationPlace.displayName,
               icon: Container(
                 width: 32.0,
                 height: 32.0,
@@ -373,10 +373,10 @@ class _RequestingRideState extends State<RequestingRide> {
                 showLocationPicker(
                   context,
                   _locationDestinationInputController,
-                  widget.destinationPlace,
+                  widget.rquestRide.destinationPlace,
                   (Place? newPlace) {
                     setState(() {
-                      widget.destinationPlace = newPlace!;
+                      widget.rquestRide.destinationPlace = newPlace!;
                     });
                   },
                 );

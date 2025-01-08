@@ -168,7 +168,8 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
   }
 }
 
-void showPaymentMethod(BuildContext context, {String? paymentOption}) {
+void showPaymentMethod(BuildContext context, fallbackFunction,
+    {String? paymentOption}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -180,6 +181,7 @@ void showPaymentMethod(BuildContext context, {String? paymentOption}) {
         defaultMethod: paymentOption,
         onPaymentMethodSelected: (selectedMethod) {
           // Handle the selected payment method here
+              fallbackFunction(selectedMethod);
           switch (selectedMethod) {
             case 'telebirr':
               // Handle Telebirr payment

@@ -1,21 +1,35 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:ride_app/Pages/requestingRide.dart';
 import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/car.dart';
 import 'package:ride_app/compont/paymentMethod.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
-import 'package:ride_app/locationPicker.dart';
 import 'package:ride_app/placeSearchWidget.dart';
+
+class RequestRide {
+  Place pickupPlace, destinationPlace;
+  String instructions;
+  String paymentMethod;
+  String carType;
+
+  RequestRide(
+      {required this.pickupPlace,
+      required this.destinationPlace,
+      required this.paymentMethod,
+      required this.carType,
+      required this.instructions});
+}
 
 class TripDetails extends StatefulWidget {
   Place? destinationPlace;
   Place? pickupPlace;
+  final Function(Place pickupPlace, Place destinationPlace) changePlaceValue;
   TripDetails(
-      {super.key, required this.destinationPlace, required this.pickupPlace});
+      {super.key,
+      required this.destinationPlace,
+      required this.pickupPlace,
+      required this.changePlaceValue});
 
   @override
   _TripDetailsState createState() => _TripDetailsState();
@@ -25,6 +39,8 @@ class _TripDetailsState extends State<TripDetails> {
   late SlidingPanelController _controller;
   late TextEditingController _locationPickerInputController;
   late TextEditingController _locationDestinationInputController;
+  String _instructions = '';
+  String _paymentOptions = 'cash';
   late Widget opensearchField;
   bool isExpanded = false;
   bool isUp = false;
@@ -170,7 +186,12 @@ class _TripDetailsState extends State<TripDetails> {
                   child: IconButton(
                     onPressed: () {
                       // Navigator.of(context).pushNamed("paymentMethod");
-                      showPaymentMethod(context, paymentOption: 'cash');
+                      showPaymentMethod(context, paymentOption: _paymentOptions,
+                          (text) {
+                        setState(() {
+                          _paymentOptions = text;
+                        });
+                      });
                     },
                     icon: Icon(Icons.add_card_outlined, color: Colors.black54),
                     padding: EdgeInsets.zero,
@@ -197,7 +218,13 @@ class _TripDetailsState extends State<TripDetails> {
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => RequestingRide(
-                              destinationPlace: pointB, pickupPlace: pointA)));
+                                rquestRide: RequestRide(
+                                    carType: 'family',
+                                    pickupPlace: widget.pickupPlace!,
+                                    destinationPlace: widget.destinationPlace!,
+                                    paymentMethod: _paymentOptions,
+                                    instructions: _instructions),
+                              )));
                     },
                   ),
                 ),
@@ -268,9 +295,8 @@ class _TripDetailsState extends State<TripDetails> {
                 _locationPickerInputController,
                 widget.pickupPlace,
                 (Place? newPlace) {
-                  setState(() {
-                    widget.pickupPlace = newPlace;
-                  });
+                  widget.changePlaceValue(newPlace!, widget.destinationPlace!);
+                  // restart route restart mapRoutes
                 },
               );
             },
@@ -300,9 +326,8 @@ class _TripDetailsState extends State<TripDetails> {
                   _locationDestinationInputController,
                   widget.destinationPlace,
                   (Place? newPlace) {
-                    setState(() {
-                      widget.destinationPlace = newPlace;
-                    });
+                    widget.changePlaceValue(widget.pickupPlace!, newPlace!);
+                    // restart route restart mapRoutes
                   },
                 );
               }),
@@ -385,7 +410,15 @@ class _TripDetailsState extends State<TripDetails> {
     return GestureDetector(
       onTap: () {
         // Navigator.of(context).pushNamed("paymentMethod");
-        showPaymentMethod(context);
+        showPaymentMethod(
+          context,
+          (text) {
+            setState(() {
+              _paymentOptions = text;
+            });
+          },
+          paymentOption: _paymentOptions,
+        );
       },
       child: Container(
         padding: EdgeInsets.fromLTRB(20, 15, 0, 15),
@@ -405,7 +438,7 @@ class _TripDetailsState extends State<TripDetails> {
                         color: Colors.grey[600], fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    "Cash",
+                    _paymentOptions,
                     style: TextStyle(
                         color: Colors.grey[600], fontWeight: FontWeight.w600),
                   ),
@@ -440,7 +473,11 @@ class _TripDetailsState extends State<TripDetails> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-              onTap: () => showInstructionForDriver(context),
+              onTap: () => showInstructionForDriver(context, (String text) {
+                    setState(() {
+                      _instructions = text;
+                    });
+                  }),
               child: Row(children: [
                 Expanded(
                   child: Container(
@@ -483,9 +520,8 @@ class _TripDetailsState extends State<TripDetails> {
       _locationPickerInputController,
       widget.pickupPlace,
       (Place? newPlace) {
-        if (mounted) {
-          setState(() => widget.pickupPlace = newPlace);
-        }
+        widget.changePlaceValue(newPlace!, widget.destinationPlace!);
+        // restart route restart mapRoutes
       },
     );
   }
@@ -496,9 +532,8 @@ class _TripDetailsState extends State<TripDetails> {
       _locationDestinationInputController,
       widget.destinationPlace,
       (Place? newPlace) {
-        if (mounted) {
-          setState(() => widget.destinationPlace = newPlace);
-        }
+        widget.changePlaceValue(widget.pickupPlace!, newPlace!);
+        // restart route restart mapRoutes
       },
     );
   }

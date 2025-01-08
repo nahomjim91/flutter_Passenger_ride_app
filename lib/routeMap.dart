@@ -141,7 +141,7 @@ class _RouteMapState extends State<RouteMap> {
       width: 100,
       height: 100,
       decoration: const BoxDecoration(
-        image:  DecorationImage(
+        image: DecorationImage(
             image: AssetImage('assets/images/car(1).png'), fit: BoxFit.fill),
         // boxShadow: [
         //   BoxShadow(

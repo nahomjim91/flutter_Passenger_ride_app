@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:location/location.dart';
 import 'package:ride_app/map.dart';
 import 'package:ride_app/placeSearchWidget.dart';
 
@@ -35,7 +33,55 @@ class _LocationPickerState extends State<LocationPicker> {
   void dispose() {
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _handlePlaceSelection(Place place) {
+    widget.inputController.text = place.displayName;
+    widget.saveSearchPlace(place);
+
+    setState(() => _places = []);
+    FocusScope.of(context).unfocus();
+    Navigator.pop(context);
+  }
+
+  Future<void> _showMapPicker(BuildContext context) async {
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: const Text('Select Location'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            body: MapCustome(
+              onLocationPicked: (address, coordinates) {
+                // Create a fallback address if the geocoding fails
+                String fallbackAddress =
+                    'Location (${coordinates.latitude.toStringAsFixed(4)}°, '
+                    '${coordinates.longitude.toStringAsFixed(4)}°)';
+
+                Navigator.pop(
+                  context,
+                  Place(
+                    displayName: address.isEmpty ? fallbackAddress : address,
+                    latitude: coordinates.latitude,
+                    longitude: coordinates.longitude,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      if (result != null && result is Place) {
+        _handlePlaceSelection(result);
       }
+    } catch (Exception) {}
+  }
 
   void _onSearchChanged(String value) async {
     setState(() => _isSearching = true);
@@ -50,16 +96,16 @@ class _LocationPickerState extends State<LocationPicker> {
 
     try {
       final results = await searchPlaces(value) ?? [];
-        setState(() {
+      setState(() {
         _places = results;
-          _isSearching = false;
-        });
+        _isSearching = false;
+      });
     } catch (e) {
-        setState(() {
-          _places = [];
-          _isSearching = false;
-        });
-      }
+      setState(() {
+        _places = [];
+        _isSearching = false;
+      });
+    }
   }
 
   void _onPlaceSelected(Place place) {
@@ -132,22 +178,22 @@ class _LocationPickerState extends State<LocationPicker> {
                 hintStyle: TextStyle(
                   color: Colors.grey[400],
                   height: 1.2,
-                  ),
+                ),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 suffixIcon: widget.inputController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
                           widget.inputController.clear();
-                              setState(() => _places = []);
-                            },
-                          )
-                        : null,
+                          setState(() => _places = []);
+                        },
+                      )
+                    : null,
                 border: InputBorder.none,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  onChanged: _onSearchChanged,
+              ),
+              onChanged: _onSearchChanged,
             ),
           ),
           _buildMapButton()
@@ -160,7 +206,7 @@ class _LocationPickerState extends State<LocationPicker> {
     return Container(
       margin: const EdgeInsets.only(right: 8),
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () => _showMapPicker(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.grey[100], // Light grey button
           elevation: 0,
@@ -169,7 +215,7 @@ class _LocationPickerState extends State<LocationPicker> {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         ),
-        child:  Text(
+        child: Text(
           'Map',
           style: TextStyle(
             color: Theme.of(context).primaryColor,
