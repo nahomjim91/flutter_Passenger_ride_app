@@ -1,18 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:ride_app/Pages/requestingRide.dart';
 import 'package:ride_app/compont/drawer.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/map.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/placeSearchWidget.dart';
-import 'package:ride_app/routeMap.dart';
-import 'package:ride_app/sliding_box.dart';
-import 'package:ride_app/yourTrip.dart';
+import 'package:ride_app/scrollablePages/sliding_box.dart';
+import 'package:ride_app/scrollablePages/yourTrip.dart';
 
 class HomePage extends StatefulWidget {
   Passenger passenger;
@@ -53,8 +49,8 @@ class _HomePageState extends State<HomePage> {
 
   Place pointA = Place(
     displayName: 'Point A',
-    latitude: 9.00427798077372,
-    longitude: 38.7679495460327,
+    latitude: 8.990125936297181,
+    longitude: 38.7512341241246,
   );
 
   Place pointB = Place(
@@ -102,9 +98,7 @@ class _HomePageState extends State<HomePage> {
           MapCustome(
             onLocationPicked: handleLocationPicked,
           ),
-          // RouteMap(
-          //     pointA: LatLng(9.00427798077372, 38.7679495460327),
-          //     pointB: LatLng(9.012797563606085, 38.77155443494872)),
+
           ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
@@ -129,3 +123,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+//8.989762498796392, 38.75107989156815
+//8.99033892123591, 38.75052357070594
+//8.990931503970192, 38.750769006380445
+
+// current location
+//8.9904215, 38.7512067

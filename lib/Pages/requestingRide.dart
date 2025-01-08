@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
-import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/placeSearchWidget.dart';
 
@@ -77,8 +76,7 @@ class _RequestingRideState extends State<RequestingRide> {
             Container(
                 alignment: Alignment.topCenter,
                 // padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+                decoration: const BoxDecoration(
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(25),
                     topRight: Radius.circular(25),

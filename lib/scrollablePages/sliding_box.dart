@@ -34,7 +34,7 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
           isUp = false;
         } else {
           // isExpanded = true;
-          isUp = true; 
+          isUp = true;
         }
       });
     });
@@ -92,6 +92,14 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
                       });
                       if (pickupPlace != null && destinationPlace != null) {
                         _controller.anchor();
+                        debugPrint("Pickup: " +
+                            pickupPlace!.latitude.toString() +
+                            " " +
+                            pickupPlace!.longitude.toString());
+                        debugPrint("Destination: " +
+                            destinationPlace!.latitude.toString() +
+                            " " +
+                            destinationPlace!.longitude.toString());
                         Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => Yourtrip(
                             pickupPlace: pickupPlace,
@@ -99,7 +107,6 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
                           ),
                         ));
                       }
-                      ;
                     },
                     onDestinationPlaceChanged: (place) {
                       setState(() {
@@ -107,6 +114,15 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
                       });
                       if (pickupPlace != null && destinationPlace != null) {
                         _controller.anchor();
+                        debugPrint("Pickup: " +
+                            pickupPlace!.latitude.toString() +
+                            " " +
+                            pickupPlace!.longitude.toString());
+                        debugPrint("Destination: " +
+                            destinationPlace!.latitude.toString() +
+                            " " +
+                            destinationPlace!.longitude.toString());
+
                         Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => Yourtrip(
                             pickupPlace: pickupPlace,

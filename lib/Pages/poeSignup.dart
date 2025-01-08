@@ -1,13 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_app/auth_service.dart';
 import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/inputFiled.dart';
-import 'package:ride_app/compont/firebaseUtillies.dart';
-import 'package:ride_app/passenger.dart';
-import 'package:ride_app/poeLogin.dart';
-import 'package:ride_app/signup_screen.dart';
-import 'package:ride_app/validator.dart';
 
 class SignUpPage extends StatefulWidget {
   final Function onTap;
@@ -27,7 +21,6 @@ class _SignUpPageState extends State<SignUpPage> {
   final _passwordcontroller = TextEditingController();
   final _passwordConfirmcontroller = TextEditingController();
   final _phonecontroller = TextEditingController();
-  final _gendercontroller = TextEditingController();
   final _obscureTextNotifier = ValueNotifier<bool>(true);
   bool isLoading = false;
   bool isLoadingSignupWithGoogle = false;

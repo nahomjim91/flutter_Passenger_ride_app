@@ -6,7 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:ride_app/placeSearchWidget.dart';
 import 'package:ride_app/ride_booking_screen.dart';
 import 'package:ride_app/routeMap.dart';
-import 'package:ride_app/sliding_box.dart';
+import 'package:ride_app/scrollablePages/sliding_box.dart';
 import 'package:ride_app/test.dart';
 import 'package:ride_app/tripDetails.dart';
 
@@ -40,14 +40,15 @@ class _YourtripState extends State<Yourtrip> {
               duration = dur;
               routePoints = points;
             });
+            debugPrint("distance: " + distance.toString());
+            debugPrint("duration: " + duration.toString());
+            // debugPrint(": " + distance.toString());
           },
         ),
         TripDetails(
             destinationPlace: widget.destinationPlace,
             pickupPlace: widget.pickupPlace)
-
       ],
     );
   }
-
 }

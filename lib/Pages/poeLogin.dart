@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ride_app/auth_page.dart';
-import 'package:ride_app/auth_service.dart';
 import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/inputFiled.dart';
 import 'package:ride_app/forgotPassword.dart';
-import 'package:ride_app/poeSignup.dart';
 
 class LoginPage extends StatefulWidget {
   final Function onTap;

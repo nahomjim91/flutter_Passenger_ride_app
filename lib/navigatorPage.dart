@@ -6,7 +6,7 @@ import 'package:ride_app/discount_screen.dart';
 import 'package:ride_app/paymentScreen.dart';
 
 import 'package:ride_app/passenger.dart';
-import 'package:ride_app/yourTrip.dart';
+import 'package:ride_app/scrollablePages/yourTrip.dart';
 
 class Home extends StatefulWidget {
   final Passenger passenger;

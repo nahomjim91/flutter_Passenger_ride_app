@@ -1,15 +1,33 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart';
+import 'package:geocoding/geocoding.dart' as geo;
+import 'package:ride_app/map.dart';
 import 'package:ride_app/placeSearchWidget.dart';
+
+class CurrentLocationPlace extends Place {
+  CurrentLocationPlace({
+    required super.displayName,
+    required super.latitude,
+    required super.longitude,
+  });
+
+  @override
+  String toString() => 'Current Location: $displayName';
+}
 
 class LocationSearchDoubleInput extends StatefulWidget {
   final TextEditingController locationDestinationInputController;
   final TextEditingController locationPickerInputController;
   final Function(Place?) onPickupPlaceChanged;
   final Function(Place?) onDestinationPlaceChanged;
-  Place? pickupPlace;
-  Place? destinationPlace;
+  final Place? pickupPlace;
+  final Place? destinationPlace;
 
-  LocationSearchDoubleInput({
+  const LocationSearchDoubleInput({
     Key? key,
     required this.locationDestinationInputController,
     required this.locationPickerInputController,
@@ -25,52 +43,81 @@ class LocationSearchDoubleInput extends StatefulWidget {
 }
 
 class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
-  bool pickerLocationFocused = false;
-  bool destinationLocationFocused = true;
-  final FocusNode pickerLocationFocusNode = FocusNode();
-  final FocusNode destinationLocationFocusNode = FocusNode();
+  late final FocusNode _pickerLocationFocusNode;
+  late final FocusNode _destinationLocationFocusNode;
+  final Location _location = Location();
+
   List<Place> _places = [];
   bool _isSearching = false;
+  bool _isPickupSearchActive = false;
+  CurrentLocationPlace? _currentLocation;
 
   @override
   void initState() {
     super.initState();
+    _pickerLocationFocusNode = FocusNode();
+    _destinationLocationFocusNode = FocusNode();
     _initializeControllers();
     _setupFocusListeners();
+    _initializeCurrentLocation();
   }
 
   void _initializeControllers() {
-    widget.locationDestinationInputController.text =
-        widget.destinationPlace?.displayName ?? '';
-    widget.locationPickerInputController.text =
-        widget.pickupPlace?.displayName ?? '';
-
-    widget.locationDestinationInputController.addListener(() {
-      setState(() {});
-    });
-
-    widget.locationPickerInputController.addListener(() {
-      setState(() {});
-    });
+    if (widget.destinationPlace?.displayName != null) {
+      widget.locationDestinationInputController.text =
+          widget.destinationPlace!.displayName;
+    }
+    if (widget.pickupPlace?.displayName != null) {
+      widget.locationPickerInputController.text =
+          widget.pickupPlace!.displayName;
+    }
   }
 
   void _setupFocusListeners() {
-    pickerLocationFocusNode.addListener(_updatePickerFocus);
-    destinationLocationFocusNode.addListener(_updateDestinationFocus);
-  }
+    _pickerLocationFocusNode.addListener(() {
+      if (_pickerLocationFocusNode.hasFocus) {
+        setState(() => _isPickupSearchActive = true);
+      }
+    });
 
-  void _updatePickerFocus() {
-    setState(() {
-      pickerLocationFocused = pickerLocationFocusNode.hasFocus;
-      destinationLocationFocused = !pickerLocationFocused;
+    _destinationLocationFocusNode.addListener(() {
+      if (_destinationLocationFocusNode.hasFocus) {
+        setState(() => _isPickupSearchActive = false);
+      }
     });
   }
 
-  void _updateDestinationFocus() {
-    setState(() {
-      destinationLocationFocused = destinationLocationFocusNode.hasFocus;
-      pickerLocationFocused = !destinationLocationFocused;
-    });
+  Future<void> _initializeCurrentLocation() async {
+    try {
+      LocationData locationData = await _location.getLocation();
+      if (locationData.latitude == null || locationData.longitude == null) {
+        throw Exception('Location data is null');
+      }
+
+      List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
+        locationData.latitude!,
+        locationData.longitude!,
+      );
+
+      if (placemarks.isNotEmpty) {
+        geo.Placemark place = placemarks[0];
+        String address = [
+          place.street ?? '',
+          place.subLocality ?? '',
+          place.locality ?? '',
+        ].where((component) => component.isNotEmpty).join(", ");
+
+        setState(() {
+          _currentLocation = CurrentLocationPlace(
+            displayName: address,
+            latitude: locationData.latitude!,
+            longitude: locationData.longitude!,
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint("Error getting current location: $e");
+    }
   }
 
   Future<void> _onSearchChanged(String value) async {
@@ -85,27 +132,95 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
     setState(() => _isSearching = true);
 
     try {
-      final results = await searchPlaces(value) ?? [];
-      setState(() {
-        _places = results;
-        _isSearching = false;
-      });
+      final results = await searchPlaces(value);
+      if (mounted) {
+        setState(() {
+          _places = results ?? [];
+          _isSearching = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _places = [];
-        _isSearching = false;
-      });
+      if (mounted) {
+        setState(() {
+          _places = [];
+          _isSearching = false;
+        });
+      }
     }
   }
 
+  void _handlePlaceSelection(Place place) {
+    if (_isPickupSearchActive) {
+      widget.locationPickerInputController.text = place.displayName;
+      widget.onPickupPlaceChanged(place);
+    } else {
+      widget.locationDestinationInputController.text = place.displayName;
+      widget.onDestinationPlaceChanged(place);
+    }
+
+    setState(() => _places = []);
+    FocusScope.of(context).unfocus();
+  }
+
+  Future<void> _showMapPicker(BuildContext context) async {
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: const Text('Select Location'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            body: MapCustome(
+              onLocationPicked: (address, coordinates) {
+                // Create a fallback address if the geocoding fails
+                String fallbackAddress =
+                    'Location (${coordinates.latitude.toStringAsFixed(4)}°, '
+                    '${coordinates.longitude.toStringAsFixed(4)}°)';
+
+                Navigator.pop(
+                  context,
+                  Place(
+                    displayName: address.isEmpty ? fallbackAddress : address,
+                    latitude: coordinates.latitude,
+                    longitude: coordinates.longitude,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      if (result != null && result is Place) {
+        _handlePlaceSelection(result);
+      }
+    } catch (Exception) {}
+  }
+
   Widget _buildSearchResults() {
-    return SizedBox(
-      height: 300, // Fixed height for search results
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      height: _places.isEmpty && _currentLocation == null ? 0 : 300,
       child: ListView.builder(
-        itemCount: _places.length,
+        itemCount: (_currentLocation != null ? 1 : 0) + _places.length,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemBuilder: (context, index) {
-          final place = _places[index];
+          if (index == 0 && _currentLocation != null) {
+            return ListTile(
+              leading: const Icon(Icons.my_location, color: Colors.blue),
+              title: const Text('Current Location'),
+              subtitle: Text(_currentLocation!.displayName),
+              onTap: () => _handlePlaceSelection(_currentLocation!),
+            );
+          }
+
+          final actualIndex = _currentLocation != null ? index - 1 : index;
+          final place = _places[actualIndex];
+
           return ListTile(
             leading: const Icon(Icons.location_on),
             title: Text(place.displayName),
@@ -119,27 +234,6 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
     );
   }
 
-  void _handlePlaceSelection(Place place) {
-    setState(() {
-      if (destinationLocationFocused) {
-        widget.destinationPlace = place;
-        widget.locationDestinationInputController.text = place.displayName;
-        widget.onDestinationPlaceChanged(place);
-      } else {
-        widget.pickupPlace = place;
-        widget.locationPickerInputController.text = place.displayName;
-        widget.onPickupPlaceChanged(place);
-      }
-
-      FocusScope.of(context).unfocus();
-      _places = [];
-
-      debugPrint('Selected place: ${place.displayName}\n'
-          'Coordinates: ${place.latitude.toStringAsFixed(4)}, '
-          '${place.longitude.toStringAsFixed(4)}');
-    });
-  }
-
   Widget _buildLocationInput({
     required bool isPickup,
     required TextEditingController controller,
@@ -150,73 +244,80 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
     Color? iconColor,
     Color? iconBackgroundColor,
   }) {
-    return Row(
-      children: [
-        Container(
-          width: 48.0,
-          height: 48.0,
-          decoration: BoxDecoration(
-            color: iconBackgroundColor,
-            borderRadius: BorderRadius.circular(8.0),
+    final bool isActive =
+        isPickup ? _isPickupSearchActive : !_isPickupSearchActive;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            width: 48.0,
+            height: 48.0,
+            decoration: BoxDecoration(
+              color: iconBackgroundColor,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Icon(icon, color: iconColor, size: 32.0),
           ),
-          child: Icon(icon, color: iconColor, size: 32.0),
-        ),
-        const SizedBox(width: 16.0),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.normal,
+          const SizedBox(width: 16.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.normal,
+                  ),
                 ),
-              ),
-              TextField(
-                controller: controller,
-                focusNode: focusNode,
-                decoration: InputDecoration(
-                  hintText: hint,
-                  suffixIcon: controller.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            controller.clear();
-                            setState(() => _places = []);
-                          },
-                        )
-                      : null,
+                TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    suffixIcon: controller.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              controller.clear();
+                              setState(() => _places = []);
+                            },
+                          )
+                        : null,
+                  ),
+                  onChanged: _onSearchChanged,
                 ),
-                onChanged: _onSearchChanged,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        if ((isPickup && pickerLocationFocused) ||
-            (!isPickup && destinationLocationFocused))
-          _buildMapButton(),
-      ],
+          if (isActive) _buildMapButton(),
+        ],
+      ),
     );
   }
 
   Widget _buildMapButton() {
-    return ElevatedButton(
-      onPressed: () {},
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFFFCC00),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0),
+      child: ElevatedButton(
+        onPressed: () => _showMapPicker(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFFCC00),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-      ),
-      child: Text(
-        'Map',
-        style: TextStyle(
-          color: Theme.of(context).primaryColor,
-          fontSize: 14.0,
-          fontWeight: FontWeight.bold,
+        child: Text(
+          'Map',
+          style: TextStyle(
+            color: Theme.of(context).primaryColor,
+            fontSize: 14.0,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -227,10 +328,10 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
-          decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 87, 104, 101),
-            boxShadow: [
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 87, 104, 101),
+            boxShadow: const [
               BoxShadow(
                 color: Color.fromARGB(255, 211, 208, 208),
                 spreadRadius: 2,
@@ -238,14 +339,14 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
                 offset: Offset(0, 2),
               )
             ],
-            borderRadius: BorderRadius.all(Radius.circular(30)),
+            borderRadius: BorderRadius.circular(30),
           ),
           child: Column(
             children: [
               _buildLocationInput(
                 isPickup: true,
                 controller: widget.locationPickerInputController,
-                focusNode: pickerLocationFocusNode,
+                focusNode: _pickerLocationFocusNode,
                 label: 'Pick up',
                 hint: 'General Wingate Street',
                 icon: Icons.location_on,
@@ -253,18 +354,17 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
                 iconBackgroundColor: const Color(0xFFFFCC00),
               ),
               Container(
-                padding: const EdgeInsets.fromLTRB(30, 5, 0, 5),
+                padding: const EdgeInsets.symmetric(horizontal: 50),
                 child: const Divider(
                   color: Colors.grey,
                   height: 5,
                   thickness: 3,
-                  indent: 20,
                 ),
               ),
               _buildLocationInput(
                 isPickup: false,
                 controller: widget.locationDestinationInputController,
-                focusNode: destinationLocationFocusNode,
+                focusNode: _destinationLocationFocusNode,
                 label: 'Destination',
                 hint: 'Where to?',
                 icon: Icons.flag,
@@ -274,18 +374,21 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        _isSearching
-            ? const Center(child: CircularProgressIndicator())
-            : _buildSearchResults(),
+        if (_isSearching)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else
+          _buildSearchResults(),
       ],
     );
   }
 
   @override
   void dispose() {
-    pickerLocationFocusNode.dispose();
-    destinationLocationFocusNode.dispose();
+    _pickerLocationFocusNode.dispose();
+    _destinationLocationFocusNode.dispose();
     super.dispose();
   }
 }
