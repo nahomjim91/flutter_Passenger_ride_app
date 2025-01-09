@@ -61,14 +61,8 @@ class _YourtripState extends State<Yourtrip> {
         if (widget.pickupPlace != null && widget.destinationPlace != null)
           RouteMap(
             key: _mapKey,
-            pointA: LatLng(
-              widget.pickupPlace!.latitude,
-              widget.pickupPlace!.longitude,
-            ),
-            pointB: LatLng(
-              widget.destinationPlace!.latitude,
-              widget.destinationPlace!.longitude,
-            ),
+          startPlace: widget.pickupPlace!,
+          endPlace: widget.destinationPlace!,
             onRouteCalculated: (dist, dur, points) {
               setState(() {
                 distance = dist;

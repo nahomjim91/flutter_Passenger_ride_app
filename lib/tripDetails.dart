@@ -12,13 +12,16 @@ class RequestRide {
   String instructions;
   String paymentMethod;
   String carType;
+  List<Place>? stopsPlaces;
 
   RequestRide(
       {required this.pickupPlace,
       required this.destinationPlace,
       required this.paymentMethod,
       required this.carType,
-      required this.instructions});
+      required this.instructions,
+      List<Place>? stopsPlaces})
+      : this.stopsPlaces = stopsPlaces ?? const [];
 }
 
 class TripDetails extends StatefulWidget {
