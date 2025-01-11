@@ -97,6 +97,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           MapCustome(
             onLocationPicked: handleLocationPicked,
+            isDisplayOnly: false,
           ),
 
           ElevatedButton(

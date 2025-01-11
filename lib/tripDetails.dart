@@ -43,6 +43,7 @@ class _TripDetailsState extends State<TripDetails> {
   late TextEditingController _locationPickerInputController;
   late TextEditingController _locationDestinationInputController;
   String _instructions = '';
+  String carType = 'Economy';
   String _paymentOptions = 'cash';
   late Widget opensearchField;
   bool isExpanded = false;
@@ -219,10 +220,16 @@ class _TripDetailsState extends State<TripDetails> {
                       ),
                     ),
                     onPressed: () {
+                      debugPrint("\n\ncarType:" +
+                          carType +
+                          "\n\npaymentMethod:" +
+                          _paymentOptions +
+                          "\n\ninstructions:" +
+                          _instructions);
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => RequestingRide(
                                 rquestRide: RequestRide(
-                                    carType: 'family',
+                                    carType: carType,
                                     pickupPlace: widget.pickupPlace!,
                                     destinationPlace: widget.destinationPlace!,
                                     paymentMethod: _paymentOptions,
@@ -336,7 +343,13 @@ class _TripDetailsState extends State<TripDetails> {
               }),
           Container(
               padding: EdgeInsets.fromLTRB(2, 0, 0, 0), child: const Divider()),
-          CarSelectionWidget()
+          CarSelectionWidget(
+              currntCarType: carType,
+              whichCar: (selectedCar) {
+                setState(() {
+                  carType = selectedCar;
+                });
+              })
         ],
       ),
     );
@@ -399,7 +412,14 @@ class _TripDetailsState extends State<TripDetails> {
             ),
           ),
           const SizedBox(height: 5),
-          CarSelectionWidget(isDetails: true),
+          CarSelectionWidget(
+              currntCarType: carType,
+              isDetails: true,
+              whichCar: (selectedCar) {
+                setState(() {
+                  carType = selectedCar;
+                });
+              }),
           const SizedBox(height: 5),
           _buildPaymentSection(),
           const SizedBox(height: 5),

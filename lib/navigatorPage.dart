@@ -1,12 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:ride_app/Pages/Home.dart';
 import 'package:ride_app/discount_screen.dart';
 import 'package:ride_app/paymentScreen.dart';
 
 import 'package:ride_app/passenger.dart';
-import 'package:ride_app/scrollablePages/yourTrip.dart';
 
 class Home extends StatefulWidget {
   final Passenger passenger;

@@ -6,10 +6,12 @@ import 'package:geocoding/geocoding.dart' as geo;
 
 class MapCustome extends StatefulWidget {
   final Function(String address, LatLng coordinates) onLocationPicked;
+  final bool isDisplayOnly;
 
   const MapCustome({
     Key? key,
     required this.onLocationPicked,
+    this.isDisplayOnly = true,
   }) : super(key: key);
 
   @override
@@ -293,45 +295,46 @@ class _MapCustomeState extends State<MapCustome> {
             ],
           ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Selected Location:',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                if (_isAddressLoading)
-                  const LinearProgressIndicator()
-                else
+        if (widget.isDisplayOnly)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Text(
-                    _selectedAddress,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    'Selected Location:',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      widget.onLocationPicked(
-                          _selectedAddress, _selectedPosition);
-                      // Navigator.of(context).pop();
-                    },
-                    child: const Text('Confirm Location'),
+                  const SizedBox(height: 8),
+                  if (_isAddressLoading)
+                    const LinearProgressIndicator()
+                  else
+                    Text(
+                      _selectedAddress,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        widget.onLocationPicked(
+                            _selectedAddress, _selectedPosition);
+                        // Navigator.of(context).pop();
+                      },
+                      child: const Text('Confirm Location'),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
       ],
     );
   }
