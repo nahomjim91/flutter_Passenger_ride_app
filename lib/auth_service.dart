@@ -1,19 +1,3 @@
-// import 'package:flutter/material.dart';
-
-// class AuthService extends StatefulWidget {
-//   const AuthService({super.key});
-
-//   @override
-//   State<AuthService> createState() => _AuthServiceState();
-// }
-
-// class _AuthServiceState extends State<AuthService> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Placeholder();
-//   }
-// }
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/passenger.dart';

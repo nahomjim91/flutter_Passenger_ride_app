@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/placeSearchWidget.dart';
 import 'package:ride_app/routeMap.dart';
 import 'package:ride_app/scrollablePages/requestingRideDetail.dart';

@@ -145,7 +145,12 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
           Icons.cancel_outlined,
           color: Colors.red,
         ),
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            'home',
+            (Route<dynamic> route) => false,
+          );
+        },
       ),
     );
   }

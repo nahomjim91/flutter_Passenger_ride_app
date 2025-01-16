@@ -107,10 +107,7 @@ class _HomePageState extends State<HomePage> {
                       Yourtrip(destinationPlace: pointB, pickupPlace: pointA),
                 ));
               },
-              // onPressed: () {
-              //   Navigator.of(context)
-              //       .push(MaterialPageRoute(builder: (_) => RequestingRide(destinationPlace: pointB, pickupPlace: pointA)));
-              // },
+           
               child: Icon(
                 Icons.add_box,
                 size: 100,

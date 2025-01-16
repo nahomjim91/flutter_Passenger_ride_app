@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -24,10 +25,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0C3B2E)),
           fontFamily: 'Poppins',
         ),
-        // home: Home(),
-        // home: MyHome(),
-        // home: SignupPage(),
-        home: AuthPage() // from poe
+        home: const AuthPage() // from poe
         );
   }
 }

@@ -220,12 +220,7 @@ class _TripDetailsState extends State<TripDetails> {
                       ),
                     ),
                     onPressed: () {
-                      debugPrint("\n\ncarType:" +
-                          carType +
-                          "\n\npaymentMethod:" +
-                          _paymentOptions +
-                          "\n\ninstructions:" +
-                          _instructions);
+                      debugPrint("\n\ncarType:$carType\n\npaymentMethod:$_paymentOptions\n\ninstructions:$_instructions");
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => RequestingRide(
                                 rquestRide: RequestRide(

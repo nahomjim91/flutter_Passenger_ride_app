@@ -5,7 +5,6 @@ import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/navigatorPage.dart';
 import 'package:ride_app/loginOrSignup.dart';
 import 'package:ride_app/passenger.dart';
-import 'package:ride_app/poeHome..dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
