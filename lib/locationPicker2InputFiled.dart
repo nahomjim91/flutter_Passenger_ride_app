@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:ride_app/map.dart';
@@ -28,16 +26,17 @@ class LocationSearchDoubleInput extends StatefulWidget {
   final Place? destinationPlace;
 
   const LocationSearchDoubleInput({
-    Key? key,
+    super.key,
     required this.locationDestinationInputController,
     required this.locationPickerInputController,
     required this.onPickupPlaceChanged,
     required this.onDestinationPlaceChanged,
     required this.pickupPlace,
     required this.destinationPlace,
-  }) : super(key: key);
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _LocationSearchDoubleInputState createState() =>
       _LocationSearchDoubleInputState();
 }

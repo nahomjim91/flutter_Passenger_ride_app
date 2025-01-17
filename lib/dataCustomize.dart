@@ -46,7 +46,7 @@ class _DataCustomizeState extends State<DataCustomize> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => Home(passenger: updatedPassenger),
+          builder: (context) => NavigatorPage(passenger: updatedPassenger),
         ),
       );
     }

@@ -52,13 +52,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 children: [
                   const SizedBox(height: 20),
                   // App Icon
-                  Icon(
+                const  Icon(
                     Icons.directions_car_rounded,
                     size: 80,
                     color: Color(0xFF0C3B2E),
                   ),
                   const SizedBox(height: 20),
-                  Text(
+                const  Text(
                     'Create Account',
                     style: TextStyle(
                       fontSize: 28,
@@ -134,49 +134,11 @@ class _SignUpPageState extends State<SignUpPage> {
                             isLoading = !isLoading;
                           }),
                         );
-                        print("_signUpWithEmail");
+                        debugPrint("_signUpWithEmail");
                       }
                     },
                   ),
-                  // ElevatedButton(
-                  //   onPressed: () {
-                  //     if (_formKey.currentState!.validate()) {
-                  //       _signUpWithEmail(
-                  //         _emailcontroller.text,
-                  //         _passwordcontroller.text,
-                  //         _firstNamecontroller.text,
-                  //         _lastNamecontroller.text,
-                  //         _phonecontroller.text,
-                  //       );
-                  //       print("_signUpWithEmail");
-                  //     }
-                  //   },
-                  //   style: ElevatedButton.styleFrom(
-                  //     backgroundColor: Color(0xFF0C3B2E),
-                  //     padding: const EdgeInsets.symmetric(vertical: 16),
-                  //     shape: RoundedRectangleBorder(
-                  //       borderRadius: BorderRadius.circular(12),
-                  //     ),
-                  //   ),
-                  //   child: isLoading
-                  //       ? const SizedBox(
-                  //           height: 20,
-                  //           width: 20,
-                  //           child: CircularProgressIndicator(
-                  //             color: Colors.white,
-                  //             strokeWidth: 2,
-                  //           ),
-                  //         )
-                  //       : const Text(
-                  //           'Sign Up',
-                  //           style: TextStyle(
-                  //             fontSize: 16,
-                  //             fontWeight: FontWeight.bold,
-                  //             color: Colors.white,
-                  //           ),
-                  //         ),
-                  // ),
-
+                
                   const SizedBox(height: 16),
                   // Google Sign Up Button
                   Row(
@@ -223,7 +185,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           onPressed: () {
                             widget.onTap();
                           },
-                          child: Text(
+                          child: const Text(
                             'Login',
                             style: TextStyle(
                               color: Color(0xFF0C3B2E),

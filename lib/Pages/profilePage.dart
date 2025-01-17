@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/compont/firebaseUtillies.dart';
+import 'package:ride_app/compont/uploadImage.dart';
+import 'package:ride_app/passenger.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfilePage extends StatefulWidget {
+  Passenger passenger;
+  ProfilePage({super.key, required this.passenger});
 
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -10,41 +19,34 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: false,
         elevation: 0,
-        backgroundColor: const Color(0xFF00BF6D),
+        backgroundColor: Colors.red,
         foregroundColor: Colors.white,
-        title: const Text("Profile"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          )
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            const ProfilePic(image: "https://i.postimg.cc/cCsYDjvj/user-2.png"),
+            ProfilePic(
+              passenger: widget.passenger,
+              isShowPhotoUpload: false,
+            ),
             Text(
-              "Annette Black",
+              "${widget.passenger.first_name} ${widget.passenger.last_name}",
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const Divider(height: 16.0 * 2),
-            const Info(
-              infoKey: "User ID",
-              info: "@annette.me",
-            ),
-            const Info(
+            //
+            Info(
               infoKey: "Location",
               info: "New York, NYC",
             ),
-            const Info(
+            Info(
               infoKey: "Phone",
-              info: "(239) 555-0108",
+              info: widget.passenger.phone_number,
             ),
-            const Info(
+            Info(
               infoKey: "Email Address",
-              info: "demo@mail.com",
+              info: widget.passenger.email,
             ),
             const SizedBox(height: 16.0),
             Align(
@@ -53,12 +55,14 @@ class ProfileScreen extends StatelessWidget {
                 width: 160,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00BF6D),
+                    backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 48),
                     shape: const StadiumBorder(),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('editProfile');
+                  },
                   child: const Text("Edit profile"),
                 ),
               ),
@@ -70,23 +74,30 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class ProfilePic extends StatelessWidget {
-  const ProfilePic({
+class ProfilePic extends StatefulWidget {
+  ProfilePic({
     super.key,
-    required this.image,
+    required this.passenger,
     this.isShowPhotoUpload = false,
     this.imageUploadBtnPress,
+    this.resized = false,
   });
 
-  final String image;
+  Passenger passenger;
+  final bool resized;
   final bool isShowPhotoUpload;
   final VoidCallback? imageUploadBtnPress;
 
   @override
+  State<ProfilePic> createState() => _ProfilePicState();
+}
+
+class _ProfilePicState extends State<ProfilePic> {
+  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.symmetric(vertical: 16.0),
+      padding: EdgeInsets.all(widget.resized ? 10 : 16.0),
+      margin: EdgeInsets.symmetric(vertical: widget.resized ? 10 : 16.0),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
@@ -98,21 +109,76 @@ class ProfilePic extends StatelessWidget {
         alignment: Alignment.bottomRight,
         children: [
           CircleAvatar(
-            radius: 50,
-            backgroundImage: NetworkImage(image),
-          ),
-          InkWell(
-            onTap: imageUploadBtnPress,
-            child: CircleAvatar(
-              radius: 13,
-              backgroundColor: Theme.of(context).primaryColor,
-              child: const Icon(
-                Icons.add,
-                color: Colors.white,
-                size: 20,
+            radius: widget.resized ? 60 : 50,
+            backgroundColor: Colors.grey.shade800,
+            child: ClipOval(
+              child: Image.network(
+                "http://127.0.0.1:8000${widget.passenger.profile_photo!}",
+                width: widget.resized ? 120 : 100,
+                height: widget.resized ? 120 : 100,
+                fit: BoxFit.cover,
+                cacheWidth: 100 * 2,
+                cacheHeight: 100 * 2,
+                headers: {
+                  'Accept': '*/*',
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  print("Error loading image: $error");
+                  return Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.grey,
+                    child: const Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Colors.white,
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Theme.of(context).primaryColor,
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
               ),
             ),
-          )
+          ),
+          if (widget.isShowPhotoUpload)
+            InkWell(
+              onTap: () => Uploadimage().pickAndUploadImage(
+                context,
+                widget.passenger,
+                (String newPhotoPath) {
+                  setState(() {
+                    widget.passenger.profile_photo = newPhotoPath;
+                    Firebaseutillies()
+                        .savePassengerToFirestore(widget.passenger);
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Profile photo updated successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+              ),
+              child: CircleAvatar(
+                radius: 13,
+                backgroundColor: Colors.red,
+                child: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
         ],
       ),
     );

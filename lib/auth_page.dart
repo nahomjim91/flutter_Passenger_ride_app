@@ -42,7 +42,7 @@ class _AuthPageState extends State<AuthPage> {
                   return DataCustomize(passenger: passenger);
                 } else {
                   // return HomePage(); // for mapp showing 
-                  return Home(passenger: passenger);
+                  return NavigatorPage(passenger: passenger);
                 }
               } else {
                 return const Center(

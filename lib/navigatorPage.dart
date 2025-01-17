@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/Pages/Home.dart';
+import 'package:ride_app/Pages/profilePage.dart';
 import 'package:ride_app/discount_screen.dart';
 import 'package:ride_app/paymentScreen.dart';
 
 import 'package:ride_app/passenger.dart';
 
-class Home extends StatefulWidget {
-  final Passenger passenger;
+// ignore: must_be_immutable
+class NavigatorPage extends StatefulWidget {
+  Passenger passenger;
 
-  const Home({Key? key, required this.passenger}) : super(key: key);
+  NavigatorPage({super.key, required this.passenger});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<NavigatorPage> createState() => _NavigatorPageState();
 }
 
-class _HomeState extends State<Home> {
+class _NavigatorPageState extends State<NavigatorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,6 +35,16 @@ class _HomeState extends State<Home> {
                   return MaterialPageRoute(builder: (_) => PaymentMethod());
                 case 'discounts':
                   return MaterialPageRoute(builder: (_) => DiscountScreen());
+                case 'profile':
+                  return MaterialPageRoute(
+                      builder: (_) => ProfilePage(passenger: widget.passenger));
+                case 'editProfile':
+                  return MaterialPageRoute(
+                      builder: (_) => EditProfilePage(
+                          passenger: widget.passenger,
+                          setPassenger: (Passenger passenger) => setState(() {
+                                widget.passenger = passenger;
+                              })));
 
                 default:
                   return MaterialPageRoute(

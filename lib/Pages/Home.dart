@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/compont/drawer.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
@@ -104,10 +105,14 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) =>
-                      Yourtrip(destinationPlace: pointB, pickupPlace: pointA),
+                      // Yourtrip(destinationPlace: pointB, pickupPlace: pointA)
+                      EditProfilePage(
+                          passenger: widget.passenger,
+                          setPassenger: (Passenger passenger) => setState(() {
+                                widget.passenger = passenger;
+                              })),
                 ));
               },
-           
               child: Icon(
                 Icons.add_box,
                 size: 100,
