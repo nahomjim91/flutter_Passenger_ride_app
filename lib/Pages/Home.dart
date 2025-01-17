@@ -5,12 +5,12 @@ import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/compont/drawer.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
-import 'package:ride_app/map.dart';
+import 'package:ride_app/compont/map.dart';
 import 'package:ride_app/passenger.dart';
-import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/scrollablePages/sliding_box.dart';
-import 'package:ride_app/scrollablePages/yourTrip.dart';
 
+// ignore: must_be_immutable
 class HomePage extends StatefulWidget {
   Passenger passenger;
   HomePage({super.key, required this.passenger});
@@ -43,8 +43,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void handleLocationPicked(String address, LatLng coordinates) {
-    print("Selected Address: $address");
-    print("Coordinates: ${coordinates.latitude}, ${coordinates.longitude}");
+    debugPrint("Selected Address: $address");
+    debugPrint("Coordinates: ${coordinates.latitude}, ${coordinates.longitude}");
     // Perform any additional actions with the received data
   }
 
@@ -113,13 +113,13 @@ class _HomePageState extends State<HomePage> {
                               })),
                 ));
               },
-              child: Icon(
+              child: const Icon(
                 Icons.add_box,
                 size: 100,
               )),
 
           // sliding box
-          SlidingBoxDemo(),
+          const SlidingBoxDemo(),
           // SlidingBoxDemo2()
         ],
       ),

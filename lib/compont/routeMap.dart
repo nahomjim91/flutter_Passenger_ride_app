@@ -5,7 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
 
 class RouteMap extends StatefulWidget {
   final Place startPlace;

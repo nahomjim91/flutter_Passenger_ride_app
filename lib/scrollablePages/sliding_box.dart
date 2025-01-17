@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
-import 'package:ride_app/locationPicker2InputFiled.dart';
-import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/compont/locationPicker2InputFiled.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/scrollablePages/yourTrip.dart';
 
 class SlidingBoxDemo extends StatefulWidget {
@@ -34,7 +34,7 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
           isUp = false;
         } else {
           // isExpanded = true;
-          isUp = true;
+          isUp = true; 
         }
       });
     });
@@ -92,14 +92,6 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
                       });
                       if (pickupPlace != null && destinationPlace != null) {
                         _controller.anchor();
-                        debugPrint("Pickup: " +
-                            pickupPlace!.latitude.toString() +
-                            " " +
-                            pickupPlace!.longitude.toString());
-                        debugPrint("Destination: " +
-                            destinationPlace!.latitude.toString() +
-                            " " +
-                            destinationPlace!.longitude.toString());
                         Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => Yourtrip(
                             pickupPlace: pickupPlace,
@@ -107,6 +99,7 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
                           ),
                         ));
                       }
+                      ;
                     },
                     onDestinationPlaceChanged: (place) {
                       setState(() {
@@ -114,15 +107,6 @@ class _SlidingBoxDemoState extends State<SlidingBoxDemo> {
                       });
                       if (pickupPlace != null && destinationPlace != null) {
                         _controller.anchor();
-                        debugPrint("Pickup: " +
-                            pickupPlace!.latitude.toString() +
-                            " " +
-                            pickupPlace!.longitude.toString());
-                        debugPrint("Destination: " +
-                            destinationPlace!.latitude.toString() +
-                            " " +
-                            destinationPlace!.longitude.toString());
-
                         Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => Yourtrip(
                             pickupPlace: pickupPlace,

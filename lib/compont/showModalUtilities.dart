@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:ride_app/locationPicker.dart';
-import 'package:ride_app/map.dart';
-import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/compont/locationPicker.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
 
 void showContact(BuildContext context) {
   showModalBottomSheet(

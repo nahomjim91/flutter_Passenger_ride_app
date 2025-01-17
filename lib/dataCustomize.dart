@@ -23,9 +23,9 @@ class _DataCustomizeState extends State<DataCustomize> {
   void initState() {
     super.initState();
     _firstNamecontroller.text =
-        widget.passenger.first_name?.split(' ').first ?? 'Unknown';
+        widget.passenger.first_name.split(' ').first ?? 'Unknown';
     _lastNamecontroller.text =
-        widget.passenger.first_name?.split(' ').skip(1).join(' ') ??
+        widget.passenger.first_name.split(' ').skip(1).join(' ') ??
             'Unknown'; // Extract last name
     _phonecontroller.text = widget.passenger.phone_number;
   }

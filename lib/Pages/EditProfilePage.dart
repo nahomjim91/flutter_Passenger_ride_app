@@ -4,7 +4,6 @@ import 'package:ride_app/Auth/profileAuthHandler.dart';
 import 'package:ride_app/Pages/profilePage.dart';
 import 'package:ride_app/Pages/restPassword.dart';
 import 'package:ride_app/compont/inputFiled.dart';
-import 'package:ride_app/Pages/forgotPassword.dart';
 import 'package:ride_app/passenger.dart';
 
 // ignore: must_be_immutable

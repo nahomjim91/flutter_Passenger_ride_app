@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as geo;
-import 'package:ride_app/map.dart';
-import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/compont/map.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
 
 class CurrentLocationPlace extends Place {
   CurrentLocationPlace({

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class DiscountScreen extends StatefulWidget {
-  const DiscountScreen({super.key});
+class DiscountPage extends StatefulWidget {
+  const DiscountPage({super.key});
 
   @override
-  State<DiscountScreen> createState() => _DiscountScreenState();
+  State<DiscountPage> createState() => _DiscountPageState();
 }
 
-class _DiscountScreenState extends State<DiscountScreen> {
+class _DiscountPageState extends State<DiscountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +66,7 @@ class _DiscountScreenState extends State<DiscountScreen> {
               Center(
                 child: TextField(
                   controller: promoCodeController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                       hintText: 'Enter promo code', focusColor: Colors.black),
                 ),
               ),
@@ -95,7 +95,6 @@ class _DiscountScreenState extends State<DiscountScreen> {
   }
 
 
-  @override
   Widget _buildClickableItem({
     required IconData icon,
     required String label,

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ride_app/compont/cameraScreen.dart';
-import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:camera/camera.dart';
@@ -22,6 +21,7 @@ class Uploadimage {
           await Future.wait([cameraStatusFuture, cameraAvailabilityFuture]);
       final cameraStatus = results[0] as PermissionStatus;
       final cameras = results[1] as List<CameraDescription>;
+      // ignore: unused_local_variable
       final hasCamera = cameras.isNotEmpty;
 
       if (!context.mounted) return;

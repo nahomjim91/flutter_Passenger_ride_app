@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ride_app/map.dart';
-import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/compont/map.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
 
 class LocationPicker extends StatefulWidget {
   final TextEditingController inputController;

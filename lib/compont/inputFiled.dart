@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ride_app/validator.dart';
+import 'package:ride_app/compont/validator.dart';
 
 Widget CustomInputFiled(
   TextEditingController controller,

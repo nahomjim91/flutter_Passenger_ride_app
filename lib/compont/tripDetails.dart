@@ -5,7 +5,7 @@ import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/car.dart';
 import 'package:ride_app/compont/paymentMethod.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
-import 'package:ride_app/placeSearchWidget.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
 
 class RequestRide {
   Place pickupPlace, destinationPlace;
@@ -24,6 +24,7 @@ class RequestRide {
       : this.stopsPlaces = stopsPlaces ?? const [];
 }
 
+// ignore: must_be_immutable
 class TripDetails extends StatefulWidget {
   Place? destinationPlace;
   Place? pickupPlace;

@@ -2,11 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:ride_app/placeSearchWidget.dart';
-import 'package:ride_app/routeMap.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
+import 'package:ride_app/compont/routeMap.dart';
 import 'package:ride_app/scrollablePages/requestingRideDetail.dart';
-import 'package:ride_app/tripDetails.dart';
+import 'package:ride_app/compont/tripDetails.dart';
 
+// ignore: must_be_immutable
 class RequestingRide extends StatefulWidget {
   RequestingRide({super.key, required this.rquestRide});
 
@@ -17,6 +18,7 @@ class RequestingRide extends StatefulWidget {
 }
 
 class _RequestingRideState extends State<RequestingRide> {
+  // ignore: unused_field
   Timer? _timer;
   double? distance;
   double? duration;

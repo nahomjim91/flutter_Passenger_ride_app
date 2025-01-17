@@ -8,6 +8,7 @@ class LoginPage extends StatefulWidget {
   final Function onTap;
   const LoginPage({super.key, required this.onTap});
   @override
+  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
@@ -16,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   bool obscurePassword = true;
   bool isLoading = false;
   bool isLoadingSignupWithGoogle = false;
+  // ignore: unused_field
   final _obscureTextNotifier = ValueNotifier<bool>(true);
 
   void toggleLoading() {
@@ -48,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
         // Handle successful login
         if (userCredential.user != null) {
           // Navigate to home page or dashboard
-          print("Successfully logged in");
+          debugPrint("Successfully logged in");
         }
       } on FirebaseAuthException catch (e) {
         String errorMessage = 'An error occurred';
@@ -58,7 +60,8 @@ class _LoginPageState extends State<LoginPage> {
         } else if (e.code == 'wrong-password') {
           errorMessage = 'Wrong password provided.';
         }
-        print("Error: " + e.code);
+        // ignore: prefer_interpolation_to_compose_strings
+        debugPrint("Error: " + e.code);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage)),
@@ -71,25 +74,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Google Sign In Method
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      // Add your Google Sign In Logic here
-      // Typically would use GoogleSignIn package
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to sign in with Google')),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -113,13 +97,13 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const SizedBox(height: 40),
                   // App Icon
-                  Icon(
+                 const Icon(
                     Icons.directions_car_rounded,
                     size: 80,
                     color: Color(0xFF0C3B2E),
                   ),
                   const SizedBox(height: 20),
-                  Text(
+                 const Text(
                     'Welcome Back!',
                     style: TextStyle(
                       fontSize: 28,
@@ -155,11 +139,11 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => Forgotpassword(),
+                            builder: (context) =>const Forgotpassword(),
                           ),
                         );
                       },
-                      child: Text(
+                      child: const Text(
                         'Forgot Password?',
                         style: TextStyle(
                           color: Color(0xFF0C3B2E),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/Pages/Home.dart';
 import 'package:ride_app/Pages/profilePage.dart';
-import 'package:ride_app/discount_screen.dart';
-import 'package:ride_app/paymentScreen.dart';
+import 'package:ride_app/Pages/discountPage.dart';
+import 'package:ride_app/Pages/paymentPage.dart';
 
 import 'package:ride_app/passenger.dart';
 
@@ -34,7 +34,7 @@ class _NavigatorPageState extends State<NavigatorPage> {
                 case 'paymentMethod':
                   return MaterialPageRoute(builder: (_) => PaymentMethod());
                 case 'discounts':
-                  return MaterialPageRoute(builder: (_) => DiscountScreen());
+                  return MaterialPageRoute(builder: (_) => DiscountPage());
                 case 'profile':
                   return MaterialPageRoute(
                       builder: (_) => ProfilePage(passenger: widget.passenger));

@@ -4,9 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
-import 'package:ride_app/placeSearchWidget.dart';
-import 'package:ride_app/tripDetails.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
+import 'package:ride_app/compont/tripDetails.dart';
 
+// ignore: must_be_immutable
 class RequestingRideDetails extends StatefulWidget {
   RequestingRideDetails(
       {super.key,
@@ -34,8 +35,9 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
   late TextEditingController _locationDestinationInputController;
   bool _shareLocation = false;
   int _counter = 0;
+  // ignore: unused_field
   Timer? _timer;
-
+  // ignore: unused_field
   Key _mapKey = UniqueKey();
 
   void _startTimer() {
@@ -307,7 +309,7 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
           children: [
             selectorButton(
               title: "Pickup",
-              subtitle: widget.rquestRide.pickupPlace!.displayName,
+              subtitle: widget.rquestRide.pickupPlace.displayName,
               icon: Container(
                 width: 36,
                 height: 38,

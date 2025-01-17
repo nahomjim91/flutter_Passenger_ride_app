@@ -3,6 +3,7 @@ import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/uploadImage.dart';
 import 'package:ride_app/passenger.dart';
 
+// ignore: must_be_immutable
 class ProfilePage extends StatefulWidget {
   Passenger passenger;
   ProfilePage({super.key, required this.passenger});
@@ -74,6 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+// ignore: must_be_immutable
 class ProfilePic extends StatefulWidget {
   ProfilePic({
     super.key,
