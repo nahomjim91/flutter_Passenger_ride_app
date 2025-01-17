@@ -1,55 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/Auth/auth_service.dart';
+import 'package:ride_app/compont/inputFiled.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+// ignore: must_be_immutable
+class RestPassword extends StatefulWidget {
+  TextEditingController emailController;
+
+  RestPassword({super.key, required this.emailController});
+
+  @override
+  State<RestPassword> createState() => _RestPasswordState();
+}
+
+class _RestPasswordState extends State<RestPassword> {
   final _formKey = GlobalKey<FormState>();
-
-  ForgotPasswordScreen({super.key});
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
+        leading: BackButton(onPressed: () {
+          Navigator.pop(context);
+          // Navigator.pop(context);
+        }),
+      ),
       backgroundColor: Colors.white,
       body: LogoWithTitle(
-        title: 'Forgot Password',
-        subText:
-            "Integer quis dictum tellus, a auctorlorem. Cras in biandit leo suspendiss.",
+        title: 'Reset Password',
+        subText: "Enter your email address to reset your password.",
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Form(
               key: _formKey,
-              child: TextFormField(
-                decoration: const InputDecoration(
-                  hintText: 'Phone',
-                  filled: true,
-                  fillColor: Color(0xFFF5FCF9),
-                  contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.0 * 1.5, vertical: 16.0),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.all(Radius.circular(50)),
-                  ),
-                ),
-                keyboardType: TextInputType.phone,
-                onSaved: (phone) {
-                  // Save it
-                },
-              ),
+              child: CustomInputFiled(widget.emailController, 'Email',
+                  ValueNotifier(false), Icons.email, 'email'),
             ),
           ),
           ElevatedButton(
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
+                AuthService().resetPassword(widget.emailController.text.trim(),
+                    context, (loading) => setState(() => isLoading = loading));
               }
             },
             style: ElevatedButton.styleFrom(
               elevation: 0,
-              backgroundColor: const Color(0xFF00BF6D),
+              backgroundColor: Colors.red,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 48),
               shape: const StadiumBorder(),
             ),
-            child: const Text("Next"),
+            child: isLoading
+                ? const CircularProgressIndicator(
+                    color: Colors.white,
+                  )
+                : const Text("Next"),
           ),
         ],
       ),

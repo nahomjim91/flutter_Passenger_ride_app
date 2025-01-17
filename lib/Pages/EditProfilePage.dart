@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_app/Auth/profileAuthHandler.dart';
 import 'package:ride_app/Pages/profilePage.dart';
+import 'package:ride_app/Pages/restPassword.dart';
 import 'package:ride_app/compont/inputFiled.dart';
+import 'package:ride_app/Pages/forgotPassword.dart';
 import 'package:ride_app/passenger.dart';
 
 // ignore: must_be_immutable
@@ -114,7 +116,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       // Password
                       CustomInputFiled(_passwordcontroller, 'Password',
                           ValueNotifier(true), Icons.lock, 'password'),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
+                      // Forgot Password
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            // Navigate to forgot password page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>  RestPassword( emailController: _emailcontroller,),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Rest Password?',
+                            style: TextStyle(
+                              color: Color(0xFF0C3B2E),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -197,7 +221,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                           content: Text(
                                               'Profile updated successfully')),
                                     );
-                                    widget.setPassenger(updatedPassenger);
+                                    if (isUpdated) {
+                                      widget.setPassenger(updatedPassenger);
+                                    }
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text(e.toString())),

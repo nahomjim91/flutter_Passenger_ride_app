@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ride_app/auth_service.dart';
+import 'package:ride_app/Auth/auth_service.dart';
 
 Widget ButtonsPrimary(isLoading, String label, onTap) {
   return ElevatedButton(

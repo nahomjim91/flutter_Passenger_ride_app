@@ -12,7 +12,6 @@ class CustomDrawer extends StatefulWidget {
     required this.passenger,
     required this.onHistoryTap,
   }) : super(key: key);
-
   @override
   State<CustomDrawer> createState() => _CustomDrawerState();
 }

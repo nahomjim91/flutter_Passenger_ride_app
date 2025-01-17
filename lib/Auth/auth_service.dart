@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:ride_app/Pages/resetEmailSentPage.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/passenger.dart';
 
@@ -120,6 +122,70 @@ class AuthService {
       }
     } catch (e) {
       print('Error: $e');
+    }
+  }
+
+  Future<void> resetPassword(
+      String email, BuildContext context, Function(bool) loadingUpdater,
+      {isForgotPassword = false}) async {
+    try {
+      loadingUpdater(true);
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      loadingUpdater(false);
+      // Show success message
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text("Password reset email sent!")),
+      // );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ResetEmailSentPage(
+                email: email,
+                title:
+                    !isForgotPassword ? "Reset Password" : "Forgot Password")),
+      );
+    } on FirebaseAuthException catch (e) {
+      loadingUpdater(false);
+      String message = "An error occurred";
+      if (e.code == 'user-not-found') {
+        message = "No user found with this email";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      loadingUpdater(false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("An unexpected error occurred")),
+      );
+    }
+  }
+
+  Future<void> resendEmailRestPassword(
+      String email, BuildContext context, Function(bool) loadingUpdater,
+     ) async {
+    try {
+      loadingUpdater(true);
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      loadingUpdater(false);
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password reset email sent!")),
+      );    
+    } on FirebaseAuthException catch (e) {
+      loadingUpdater(false);
+      String message = "An error occurred";
+      if (e.code == 'user-not-found') {
+        message = "No user found with this email";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      loadingUpdater(false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("An unexpected error occurred")),
+      );
     }
   }
 }
