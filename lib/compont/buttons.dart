@@ -34,7 +34,8 @@ Widget ButtonWitGoogle(isloading, toggleLoading) {
         : () async {
             toggleLoading(); // Start loading
             try {
-              await AuthService().signInWithGoogle2();
+              // await AuthService().signInWithGoogle2();
+              await AuthService().signInWithGoogle2Laravel();
               toggleLoading(); // Start loading
             } catch (e) {
               print("Error: $e");

@@ -24,17 +24,68 @@ class _SignUpPageState extends State<SignUpPage> {
   final _obscureTextNotifier = ValueNotifier<bool>(true);
   bool isLoading = false;
   bool isLoadingSignupWithGoogle = false;
+  bool _mounted = true;
 
   void toggleLoading() {
-    setState(() {
-      isLoadingSignupWithGoogle = !isLoadingSignupWithGoogle;
-    });
+    if (_mounted) {
+      setState(() {
+        isLoadingSignupWithGoogle = !isLoadingSignupWithGoogle;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _mounted = true;
   }
 
   @override
   void dispose() {
+    _mounted = false;
     _obscureTextNotifier.dispose();
+    _firstNamecontroller.dispose();
+    _lastNamecontroller.dispose();
+    _emailcontroller.dispose();
+    _passwordcontroller.dispose();
+    _passwordConfirmcontroller.dispose();
+    _phonecontroller.dispose();
     super.dispose();
+  }
+
+  void _handleSignUp() async {
+    if (_formKey.currentState!.validate()) {
+      if (_mounted) {
+        setState(() {
+          isLoading = true;
+        });
+      }
+
+      try {
+        await AuthService().signUpWithEmailLaravel(
+          _emailcontroller.text,
+          _passwordcontroller.text,
+          _firstNamecontroller.text,
+          _lastNamecontroller.text,
+          _phonecontroller.text,
+          () {
+            if (_mounted) {
+              setState(() {
+                isLoading = !isLoading;
+              });
+            }
+          },
+        );
+        debugPrint("_signUpWithEmail");
+      } catch (e) {
+        // Handle any errors here
+        if (_mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -51,14 +102,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 20),
-                  // App Icon
-                const  Icon(
+                  const Icon(
                     Icons.directions_car_rounded,
                     size: 80,
                     color: Color(0xFF0C3B2E),
                   ),
                   const SizedBox(height: 20),
-                const  Text(
+                  const Text(
                     'Create Account',
                     style: TextStyle(
                       fontSize: 28,
@@ -68,7 +118,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 30),
-                  // First Name & Last Name
                   Row(
                     children: [
                       Expanded(
@@ -91,11 +140,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Email
                   CustomInputFiled(_emailcontroller, 'Email',
                       ValueNotifier(false), Icons.email, 'email'),
                   const SizedBox(height: 16),
-                  // Phone
                   CustomInputFiled(
                     _phonecontroller,
                     'Phone',
@@ -104,11 +151,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     'phone',
                   ),
                   const SizedBox(height: 16),
-                  // Password
                   CustomInputFiled(_passwordcontroller, 'Password',
                       ValueNotifier(true), Icons.lock, 'password'),
                   const SizedBox(height: 16),
-                  // Confirm Password
                   CustomInputFiled(
                       _passwordConfirmcontroller,
                       'Confirm Password',
@@ -117,30 +162,12 @@ class _SignUpPageState extends State<SignUpPage> {
                       'passwordConfirm',
                       password: _passwordcontroller),
                   const SizedBox(height: 16),
-                  // Gender
-                  // Sign Up Button
                   ButtonsPrimary(
                     isLoading,
                     'Sign up',
-                    () {
-                      if (_formKey.currentState!.validate()) {
-                        AuthService().signUpWithEmail(
-                          _emailcontroller.text,
-                          _passwordcontroller.text,
-                          _firstNamecontroller.text,
-                          _lastNamecontroller.text,
-                          _phonecontroller.text,
-                          () => setState(() {
-                            isLoading = !isLoading;
-                          }),
-                        );
-                        debugPrint("_signUpWithEmail");
-                      }
-                    },
+                    _handleSignUp,
                   ),
-                
                   const SizedBox(height: 16),
-                  // Google Sign Up Button
                   Row(
                     children: [
                       Expanded(
@@ -169,7 +196,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   const SizedBox(height: 16),
                   ButtonWitGoogle(isLoadingSignupWithGoogle, toggleLoading),
                   const SizedBox(height: 24),
-                  // Login Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -179,18 +205,13 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navigate to login page
+                          widget.onTap();
                         },
-                        child: TextButton(
-                          onPressed: () {
-                            widget.onTap();
-                          },
-                          child: const Text(
-                            'Login',
-                            style: TextStyle(
-                              color: Color(0xFF0C3B2E),
-                              fontWeight: FontWeight.bold,
-                            ),
+                        child: const Text(
+                          'Login',
+                          style: TextStyle(
+                            color: Color(0xFF0C3B2E),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

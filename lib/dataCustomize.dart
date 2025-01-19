@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/compont/inputFiled.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/navigatorPage.dart';
@@ -22,11 +23,9 @@ class _DataCustomizeState extends State<DataCustomize> {
   @override
   void initState() {
     super.initState();
-    _firstNamecontroller.text =
-        widget.passenger.first_name.split(' ').first ?? 'Unknown';
+    _firstNamecontroller.text = widget.passenger.first_name.split(' ').first;
     _lastNamecontroller.text =
-        widget.passenger.first_name.split(' ').skip(1).join(' ') ??
-            'Unknown'; // Extract last name
+        widget.passenger.last_name.split(' ').first; // Extract last name
     _phonecontroller.text = widget.passenger.phone_number;
   }
 
@@ -41,7 +40,8 @@ class _DataCustomizeState extends State<DataCustomize> {
         phone_number: _phonecontroller.text,
       );
       // Save to Firestore
-      await Firebaseutillies().savePassengerToFirestore(updatedPassenger);
+      // await Firebaseutillies().savePassengerToFirestore(updatedPassenger);
+      ApiService().updatePassenger(updatedPassenger.id, updatedPassenger);
       // Navigate to Home
       Navigator.pushReplacement(
         context,

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/compont/drawer.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
@@ -44,7 +45,8 @@ class _HomePageState extends State<HomePage> {
 
   void handleLocationPicked(String address, LatLng coordinates) {
     debugPrint("Selected Address: $address");
-    debugPrint("Coordinates: ${coordinates.latitude}, ${coordinates.longitude}");
+    debugPrint(
+        "Coordinates: ${coordinates.latitude}, ${coordinates.longitude}");
     // Perform any additional actions with the received data
   }
 
@@ -78,7 +80,8 @@ class _HomePageState extends State<HomePage> {
       ),
       drawer: FutureBuilder<Passenger?>(
         future:
-            Firebaseutillies().getPassengerFromFirestore(widget.passenger.id),
+            // Firebaseutillies().getPassengerFromFirestore(widget.passenger.id),
+            ApiService().getPassenger(widget.passenger.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator(); // or any other loading indicator

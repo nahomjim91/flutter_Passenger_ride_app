@@ -1,0 +1,330 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:ride_app/passenger.dart';
+
+class ApiService {
+  final String baseUrl = 'http://127.0.0.1:8000/api/passenger';
+  Map<String, String> get _headers => {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+  Future<List<Passenger>> getPassengers() async {
+    try {
+      final response = await http.get(Uri.parse(baseUrl), headers: _headers);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final passengers = (data['passengers'] as List)
+            .map((passengerJson) => Passenger.fromJson(passengerJson))
+            .toList();
+        return passengers;
+      } else {
+        throw Exception('Failed to fetch passengers');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  Future<Passenger?> getPassenger(String id) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/$id'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final passengerJson = json.decode(response.body)['passenger'];
+        return Passenger.fromJson(passengerJson);
+      }
+      return null;
+      // throw Exception('Failed to get passenger');
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  Future<Passenger> createPassenger(Passenger passenger) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        headers: _headers,
+        body: json.encode(passenger.toJson()),
+      );
+      if (response.statusCode == 201) {
+        final passengerJson = json.decode(response.body)['passenger'];
+        return Passenger.fromJson(passengerJson);
+      } else {
+        throw Exception(
+            'Failed to create passenger from JSON: ${json.decode(response.body)?['message']}');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  Future<Passenger> updatePassenger(String id, Passenger passenger) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/$id'),
+        headers: _headers,
+        body: json.encode(passenger.toJson()),
+      );
+      if (response.statusCode == 200) {
+        final passengerJson = json.decode(response.body)['passenger'];
+        return Passenger.fromJson(passengerJson);
+      } else {
+        throw Exception('Failed to update passenger');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  Future<void> deletePassenger(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/$id'),
+        headers: _headers,
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete passenger');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+}
+
+Future<User> signInWithGoogle2Laravel() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      // If the user is already signed in, return the user
+      if (currentUser != null) {
+        print("User already signed in: ${currentUser.email}");
+        return currentUser;
+      }
+
+      // Trigger Google Sign-In
+      GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+      // Set custom scopes if needed
+      googleProvider
+        ..addScope('email')
+        ..addScope('profile');
+
+      // Sign in with Firebase
+      await FirebaseAuth.instance.signInWithPopup(googleProvider);
+
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Create a Passenger object
+        // Check if the user exists in Firestore
+        final existingPassenger =
+            // await Firebaseutillies().getPassengerFromFirestore(user.uid);
+            await apiService.getPassenger(user.uid);
+
+        if (existingPassenger != null) {
+          // User already exists, redirect to home
+          print("User already exists in Firestore. Redirecting to home.");
+          return user;
+        } else {
+          debugPrint(
+              'User does not exist in database. Creating new passenger.');
+          final passenger = Passenger(
+            id: user.uid,
+            phone_number:
+                user.phoneNumber ?? 'Unknown', // Default if no phone number
+            first_name: user.displayName?.split(' ').first ??
+                'Unknown', // Extract first name
+            last_name: 'Unknown', // Extract last name
+            profile_photo: user.photoURL ??
+                "https://lh3.googleusercontent.com/a/AEdFTp4wIcFvcdLSRoBqJsF4Y-lzb_hHL8k7jqnCYBs0=s96-c", // Default profile photo
+            created_at: user.metadata.creationTime?.toIso8601String() ??
+                'Unknown', // Creation time
+            email: user.email ?? 'Unknown', // Default email if null
+          );
+          // await Firebaseutillies().savePassengerToFirestore(passenger);
+          await apiService.createPassenger(passenger);
+
+          print("User signed up: ${user.email},");
+        }
+      }
+      return user!;
+    } catch (e) {
+      // print("Error signing in with Google laravel: $e");
+      throw Exception("Error signing in with Google laravel: $e");
+    }
+  }
+
+Widget ButtonWitGoogle(isloading, toggleLoading) {
+  return OutlinedButton.icon(
+    onPressed: isloading
+        ? null // Disable the button while loading
+        : () async {
+            toggleLoading(); // Start loading
+            try {
+              // await AuthService().signInWithGoogle2();
+              await AuthService().signInWithGoogle2Laravel();
+              toggleLoading(); // Start loading
+            } catch (e) {
+              print("Error: $e");
+            }
+          },
+    icon: !isloading ? const Icon(Icons.g_mobiledata, size: 24) : null,
+    label: isloading
+        ? const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              color: Color(0xFF0C3B2E),
+              strokeWidth: 2,
+            ),
+          )
+        : const Text('Sign up with Google'),
+    style: OutlinedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      side: const BorderSide(color: Color(0xFF0C3B2E)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  );
+}
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:ride_app/Auth/api_service.dart';
+// import 'package:ride_app/Auth/apiService.dart';
+import 'package:ride_app/dataCustomize.dart';
+import 'package:ride_app/navigatorPage.dart';
+import 'package:ride_app/loginOrSignup.dart';
+import 'package:ride_app/passenger.dart';
+
+class AuthPage extends StatefulWidget {
+  const AuthPage({super.key});
+
+  @override
+  State<AuthPage> createState() => _AuthPageState();
+}
+
+class _AuthPageState extends State<AuthPage> {
+  final ApiService _apiService = ApiService();
+  bool _isInitialLoad = true;
+
+  Future<Passenger?> _fetchPassengerData(String uid) async {
+    try {
+      debugPrint('Fetching passenger data for UID: $uid');
+      // Add a small delay on initial load to allow for passenger creation
+      if (_isInitialLoad) {
+        await Future.delayed(const Duration(seconds: 2));
+        _isInitialLoad = false;
+      }
+
+      final passenger = await _apiService.getPassenger(uid);
+      // future: Firebaseutillies().getPassengerFromFirestore(user.uid),
+      debugPrint('Passenger data received: ${passenger.toString()}');
+      return passenger;
+    } catch (e) {
+      debugPrint('Error fetching passenger data: $e');
+      // Return null instead of throwing to handle the case where passenger doesn't exist yet
+      return null;
+    }
+  }
+
+  Future<Passenger?> _retryWithBackoff(String uid,
+      {int maxAttempts = 3}) async {
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        final passenger = await _apiService.getPassenger(uid);
+        if (passenger != null) {
+          return passenger;
+        }
+      } catch (e) {
+        debugPrint('Attempt ${attempt + 1} failed: $e');
+      }
+
+      // Wait longer between each attempt
+      await Future.delayed(Duration(seconds: attempt + 2));
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, authSnapshot) {
+          if (authSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (authSnapshot.hasData && authSnapshot.data != null) {
+            final user = authSnapshot.data!;
+            debugPrint('User authenticated with UID: ${user.uid}');
+
+            return FutureBuilder<Passenger?>(
+              future: _retryWithBackoff(user.uid),
+              builder: (context, passengerSnapshot) {
+                if (passengerSnapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Loading your profile...'),
+                      ],
+                    ),
+                  );
+                }
+
+                // If we have passenger data, proceed to appropriate screen
+                if (passengerSnapshot.hasData &&
+                    passengerSnapshot.data != null) {
+                  final passenger = passengerSnapshot.data!;
+                  debugPrint('Passenger data loaded successfully');
+
+                  if (passenger.first_name == 'Unknown' ||
+                      passenger.last_name == 'Unknown') {
+                    return DataCustomize(passenger: passenger);
+                  } else {
+                    return NavigatorPage(passenger: passenger);
+                  }
+                }
+
+                // If we don't have data after retries, show error with retry option
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Unable to load your profile'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _isInitialLoad = true; // Reset for a fresh attempt
+                          });
+                        },
+                        child: const Text('Retry'),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                        },
+                        child: const Text('Sign Out'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }
+
+          return const LoginOrSignup();
+        },
+      ),
+    );
+  }
+}

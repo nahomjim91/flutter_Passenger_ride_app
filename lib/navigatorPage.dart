@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/Pages/Home.dart';
 import 'package:ride_app/Pages/profilePage.dart';
@@ -18,6 +19,18 @@ class NavigatorPage extends StatefulWidget {
 }
 
 class _NavigatorPageState extends State<NavigatorPage> {
+  void updatingPassenger(Passenger passenger) async {
+    try {
+      Passenger updatedPassenger =
+          await ApiService().updatePassenger(passenger.id, passenger);
+      setState(() {
+        widget.passenger = updatedPassenger;
+      });
+    } catch (e) {
+      print('Error updating passenger: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +45,10 @@ class _NavigatorPageState extends State<NavigatorPage> {
                   return MaterialPageRoute(
                       builder: (_) => HomePage(passenger: widget.passenger));
                 case 'paymentMethod':
-                  return MaterialPageRoute(builder: (_) => PaymentMethod());
+                  return MaterialPageRoute(
+                      builder: (_) => PaymentMethod(
+                          passenger: widget.passenger,
+                          updater: updatingPassenger));
                 case 'discounts':
                   return MaterialPageRoute(builder: (_) => DiscountPage());
                 case 'profile':

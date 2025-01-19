@@ -125,7 +125,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>  RestPassword( emailController: _emailcontroller,),
+                                builder: (context) => RestPassword(
+                                  emailController: _emailcontroller,
+                                ),
                               ),
                             );
                           },
@@ -204,6 +206,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       profile_photo:
                                           widget.passenger.profile_photo,
                                       created_at: widget.passenger.created_at,
+                                      payment_method:
+                                          widget.passenger.payment_method,
                                     );
 
                                     final profileAuthHandler =

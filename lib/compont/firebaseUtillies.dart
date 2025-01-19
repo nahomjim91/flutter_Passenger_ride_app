@@ -19,6 +19,7 @@ class Firebaseutillies {
           profile_photo: data['profile_photo'],
           created_at: data['created_at'],
           email: data['email'],
+          payment_method: data['payment_method'],
         );
       } else {
         print("No such document!");

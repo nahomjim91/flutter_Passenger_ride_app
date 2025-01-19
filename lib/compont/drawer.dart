@@ -18,7 +18,9 @@ class CustomDrawer extends StatefulWidget {
 
 class _CustomDrawerState extends State<CustomDrawer> {
   Widget _buildDrawerHeader(context) {
-    final imageUrl = "http://127.0.0.1:8000${widget.passenger.profile_photo!}";
+    final imageUrl = widget.passenger.profile_photo!.contains("http")
+        ? widget.passenger.profile_photo!
+        : "http://127.0.0.1:8000${widget.passenger.profile_photo!}";
     print("Loading image from: $imageUrl");
     return GestureDetector(
       onTap: () => _navigateTo(context, 'profile'),
@@ -54,7 +56,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     child: widget.passenger.profile_photo != null
                         ? ClipOval(
                             child: Image.network(
-                              "http://127.0.0.1:8000${widget.passenger.profile_photo!}",
+                              imageUrl,
                               width: 80,
                               height: 80,
                               fit: BoxFit.cover,
@@ -167,6 +169,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
     Navigator.of(context).pushNamed(route);
   }
 
+  String capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -183,7 +190,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ),
           _buildDrawerTile(
             title: 'Payment methods',
-            subtitle: 'Telebirr',
+            subtitle: capitalize(widget.passenger.payment_method),
             icon: Icons.payment_sharp,
             onTap: () => _navigateTo(context, 'paymentMethod'),
           ),

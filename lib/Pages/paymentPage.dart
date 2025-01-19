@@ -1,19 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/passenger.dart';
 
 class PaymentMethod extends StatefulWidget {
-  const PaymentMethod({Key? key}) : super(key: key);
+  Passenger passenger;
+  Function(Passenger) updater;
+  PaymentMethod({Key? key, required this.passenger, required this.updater})
+      : super(key: key);
 
   @override
   State<PaymentMethod> createState() => _PaymentMethodState();
 }
 
 class _PaymentMethodState extends State<PaymentMethod> {
-  String selectedMethod = 'Telebirr'; // Default selected method
+  late String selectedMethod;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedMethod = widget.passenger.payment_method; // Default selected method
+  }
 
   void changeMethod(String method) {
     setState(() {
-      selectedMethod = method;
+      selectedMethod = method.toLowerCase();
     });
+  }
+
+  void done() {
+    Passenger tempPassenger = widget.passenger;
+    tempPassenger.payment_method = selectedMethod;
+    widget.updater(tempPassenger);
   }
 
   @override
@@ -31,22 +47,51 @@ class _PaymentMethodState extends State<PaymentMethod> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildPaymentOption(
-              'Telebirr',
-              'Pay with mobile money',
-              'assets/images/telebirr_icon.png',
+            Column(
+              children: [
+                _buildPaymentOption(
+                  'Telebirr',
+                  'Pay with mobile money',
+                  'assets/images/telebirr_icon.png',
+                ),
+                const SizedBox(height: 16),
+                _buildPaymentOption(
+                  'Awash',
+                  'Pay with mobile money',
+                  'assets/images/awash_icon.png',
+                ),
+                const SizedBox(height: 16),
+                _buildPaymentOption(
+                  'Cash',
+                  'Pay with mobile money',
+                  'assets/images/cash_icon.png',
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            _buildPaymentOption(
-              'Awash',
-              'Pay with mobile money',
-              'assets/images/awash_icon.png',
-            ),
-            const SizedBox(height: 16),
-            _buildPaymentOption(
-              'Cash',
-              'Pay with mobile money',
-              'assets/images/cash_icon.png',
+            const Spacer(),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFFF4533),
+                      padding: EdgeInsets.all(16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: const Text(
+                      'Done',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    onPressed: () => done(),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -103,7 +148,10 @@ class _PaymentMethodState extends State<PaymentMethod> {
             // if (selectedMethod == title)
             Icon(
               Icons.circle,
-              color: selectedMethod == title ? Colors.green : Colors.grey[300],
+              color: selectedMethod == title ||
+                      selectedMethod == title.toLowerCase()
+                  ? Colors.red
+                  : Colors.grey[300],
               size: 30,
             ),
           ],
