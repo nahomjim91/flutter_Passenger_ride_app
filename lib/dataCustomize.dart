@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/compont/inputFiled.dart';
-import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/navigatorPage.dart';
 import 'package:ride_app/passenger.dart';
 
@@ -41,12 +41,13 @@ class _DataCustomizeState extends State<DataCustomize> {
       );
       // Save to Firestore
       // await Firebaseutillies().savePassengerToFirestore(updatedPassenger);
-      ApiService().updatePassenger(updatedPassenger.id, updatedPassenger);
+      ApiService().updatePassenger(updatedPassenger);
+      await context.read<PassengerProvider>().updatePassenger(updatedPassenger);
       // Navigate to Home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => NavigatorPage(passenger: updatedPassenger),
+          builder: (context) => NavigatorPage(),
         ),
       );
     }
@@ -79,13 +80,9 @@ class _DataCustomizeState extends State<DataCustomize> {
               ),
               const SizedBox(height: 16),
               // Phone
-              CustomInputFiled(
-                _phonecontroller,
-                'Phone',
-                ValueNotifier(false),
-                Icons.phone,
-                'phone',
-              ),
+              CustomInputFiled(_phonecontroller, 'Phone', ValueNotifier(false),
+                  Icons.phone, 'phone',
+                  checkPhone: true),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _submit,

@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/Auth/profileAuthHandler.dart';
 import 'package:ride_app/Pages/profilePage.dart';
 import 'package:ride_app/Pages/restPassword.dart';
@@ -8,16 +10,15 @@ import 'package:ride_app/passenger.dart';
 
 // ignore: must_be_immutable
 class EditProfilePage extends StatefulWidget {
-  Passenger passenger;
-  Function(Passenger passenger) setPassenger;
-  EditProfilePage(
-      {super.key, required this.passenger, required this.setPassenger});
+  // Function(Passenger passenger) setPassenger;
+  EditProfilePage({super.key});
   @override
   // ignore: library_private_types_in_public_api
   _EditProfilePageState createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  late Passenger passenger;
   final _formKey = GlobalKey<FormState>();
   bool obscurePassword = true;
   final _firstNamecontroller = TextEditingController();
@@ -31,10 +32,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    _firstNamecontroller.text = widget.passenger.first_name;
-    _lastNamecontroller.text = widget.passenger.last_name;
-    _emailcontroller.text = widget.passenger.email;
-    _phonecontroller.text = widget.passenger.phone_number;
+    passenger = context.read<PassengerProvider>().passenger!;
+
+    _firstNamecontroller.text = passenger.first_name;
+    _lastNamecontroller.text = passenger.last_name;
+    _emailcontroller.text = passenger.email;
+    _phonecontroller.text = passenger.phone_number;
   }
 
   @override
@@ -60,7 +63,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
             child: Column(
               children: [
                 ProfilePic(
-                  passenger: widget.passenger,
                   isShowPhotoUpload: true,
                   resized: true,
                 ),
@@ -198,16 +200,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                     }
 
                                     final updatedPassenger = Passenger(
-                                      id: widget.passenger.id,
+                                      id: passenger.id,
                                       first_name: _firstNamecontroller.text,
                                       last_name: _lastNamecontroller.text,
                                       email: _emailcontroller.text,
                                       phone_number: _phonecontroller.text,
-                                      profile_photo:
-                                          widget.passenger.profile_photo,
-                                      created_at: widget.passenger.created_at,
-                                      payment_method:
-                                          widget.passenger.payment_method,
+                                      profile_photo: passenger.profile_photo,
+                                      created_at: passenger.created_at,
+                                      payment_method: passenger.payment_method,
                                     );
 
                                     final profileAuthHandler =
@@ -225,7 +225,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                               'Profile updated successfully')),
                                     );
                                     if (isUpdated) {
-                                      widget.setPassenger(updatedPassenger);
+                                      ApiService().updatePassenger(
+                                        updatedPassenger,
+                                      );
+                                      context.read<PassengerProvider>().updatePassenger(updatedPassenger);
                                     }
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(

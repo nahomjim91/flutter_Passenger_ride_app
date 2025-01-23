@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
+import 'package:ride_app/compont/Map/showSelectedMap.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/compont/tripDetails.dart';
+import 'package:ride_app/passenger.dart';
 
 // ignore: must_be_immutable
 class RequestingRideDetails extends StatefulWidget {
@@ -35,6 +38,8 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
   late TextEditingController _locationDestinationInputController;
   bool _shareLocation = false;
   int _counter = 0;
+  late Passenger passenger;
+
   // ignore: unused_field
   Timer? _timer;
   // ignore: unused_field
@@ -58,6 +63,9 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
   void initState() {
     super.initState();
     _startTimer();
+
+    passenger = context.read<PassengerProvider>().passenger!;
+
     _locationPickerInputController = TextEditingController();
     _locationDestinationInputController = TextEditingController();
     _controller = SlidingPanelController();
@@ -69,6 +77,7 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
     _locationPickerInputController.dispose();
     _locationDestinationInputController.dispose();
     _controller.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -322,25 +331,34 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                     child: Icon(Icons.directions_run, color: Colors.white)),
               ),
               onTap: () {
-                showLocationPicker(
-                  context,
-                  _locationPickerInputController,
-                  widget.rquestRide.pickupPlace,
-                  (Place? newPlace) {
-                    setState(() {
-                      widget.rquestRide.pickupPlace = newPlace!;
-                    });
-                  },
-                );
+                showSelectedPlace(widget.rquestRide.pickupPlace);
               },
             ),
-            Container(
-                padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
-                child: const Divider(height: 32)),
+            // Container(
+            //     padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
+            //     child: const Divider(height: 32)),
             if (widget.rquestRide.stopsPlaces != null)
               for (int i = 0; i < widget.rquestRide.stopsPlaces!.length; i++)
                 Column(children: [
-                  selectorButton(
+                  Dismissible(
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      setState(() {
+                        widget.rquestRide.stopsPlaces!.removeAt(i);
+                      });
+                    },
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20.0),
+                      child: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                        size: 32.0,
+                      ),
+                    ),
+                    key: Key(i.toString()),
+                    child: selectorButton(
                       title: "Stop ${i + 1}",
                       subtitle: widget.rquestRide.stopsPlaces![i].displayName,
                       icon: Container(
@@ -356,15 +374,13 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                         ),
                       ),
                       onTap: () {
-                        showLocationPicker(context, TextEditingController(),
-                            widget.rquestRide.stopsPlaces![i],
-                            (Place? newPlace) {
-                          widget.updatePlaces(newPlace!, i);
-                        });
-                      }),
-                  Container(
-                      padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
-                      child: const Divider(height: 32)),
+                        showSelectedPlace(widget.rquestRide.stopsPlaces![i]);
+                      },
+                    ),
+                  ),
+                  // Container(
+                  //     padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
+                  //     child: const Divider(height: 32)),
                 ]),
             selectorButton(
               title: null,
@@ -392,9 +408,9 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                 );
               },
             ),
-            Container(
-                padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
-                child: const Divider(height: 32)),
+            // Container(
+            //     padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
+            //     child: const Divider(height: 32)),
             selectorButton(
               title: "Destination",
               subtitle: widget.rquestRide.destinationPlace.displayName,
@@ -411,15 +427,8 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                 ),
               ),
               onTap: () {
-                showLocationPicker(
-                  context,
-                  _locationDestinationInputController,
+                showSelectedPlace(
                   widget.rquestRide.destinationPlace,
-                  (Place? newPlace) {
-                    setState(() {
-                      widget.rquestRide.destinationPlace = newPlace!;
-                    });
-                  },
                 );
               },
             ),
@@ -433,6 +442,11 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
     required ValueChanged<bool> onLocationShareChanged,
     required VoidCallback onCarrierDetailsTap,
   }) {
+    List<String> images = [
+      'assets/images/telebirr_icon.png',
+      'assets/images/awash_icon.png',
+      'assets/images/cash_icon.png',
+    ];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -457,7 +471,12 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                     // border: Border.all(color: Colors.),
                     ),
                 child: Image.asset(
-                  'assets/images/telebirr_icon.png',
+                  passenger.payment_method.toLowerCase() == 'telebirr'
+                      ? images[0]
+                      : passenger.payment_method == 'awash'
+                          ? images[1]
+                          : images[2],
+                  // 'assets/images/telebirr_icon.png',
                   width: 40,
                   height: 40,
                 ),
@@ -468,7 +487,9 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mobile Money: $price',
+                      passenger.payment_method == 'cash'
+                          ? 'Cash: $price'
+                          : 'Mobile Money: $price',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -528,6 +549,13 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
     );
   }
 
+  void showSelectedPlace(Place place) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+          builder: (context) => ShowSelectedMap(selectedPlace: place)),
+    );
+  }
+
   Widget selectorButton({
     required String? title,
     required String subtitle,
@@ -536,39 +564,48 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
   }) {
     return InkWell(
       onTap: () => onTap(),
-      child: Row(
-        children: [
-          icon,
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (title != null)
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 15, 0, 15),
+        decoration: BoxDecoration(
+          border: Border(
+              bottom: BorderSide(
+            color: Colors.grey[200]!,
+          )),
+        ),
+        child: Row(
+          children: [
+            icon,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (title != null)
+                    Text(
+                      title,
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: Colors
+                              .grey[600]), // Optional styling for the title
+                    ),
                   Text(
-                    title,
+                    subtitle,
                     style: TextStyle(
-                        fontSize: 14,
-                        color:
-                            Colors.grey[600]), // Optional styling for the title
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color:
+                          subtitle == 'Cancel ride' ? Colors.red : Colors.black,
+                    ),
                   ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color:
-                        subtitle == 'Cancel ride' ? Colors.red : Colors.black,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Icon(
-            Icons.chevron_right,
-            color: Colors.black,
-          ),
-        ],
+            Icon(
+              Icons.chevron_right,
+              color: Colors.black,
+            ),
+          ],
+        ),
       ),
     );
   }

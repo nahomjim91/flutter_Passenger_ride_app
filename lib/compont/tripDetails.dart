@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
+import 'package:provider/provider.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/Pages/requestingRide.dart';
 import 'package:ride_app/compont/buttons.dart';
 import 'package:ride_app/compont/car.dart';
 import 'package:ride_app/compont/paymentMethod.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
+import 'package:ride_app/compont/Map/showSelectedMap.dart';
+import 'package:ride_app/passenger.dart';
 
 class RequestRide {
   Place pickupPlace, destinationPlace;
@@ -45,10 +49,11 @@ class _TripDetailsState extends State<TripDetails> {
   late TextEditingController _locationDestinationInputController;
   String _instructions = '';
   String carType = 'Economy';
-  String _paymentOptions = 'cash';
+  late String _paymentOptions;
   late Widget opensearchField;
   bool isExpanded = false;
   bool isUp = false;
+  late Passenger passenger;
 
   Place pointA = Place(
     displayName: 'Point A',
@@ -65,6 +70,8 @@ class _TripDetailsState extends State<TripDetails> {
   @override
   void initState() {
     super.initState();
+    passenger = context.read<PassengerProvider>().passenger!;
+    _paymentOptions = passenger.payment_method;
     _locationPickerInputController = TextEditingController();
     _locationDestinationInputController = TextEditingController();
     _controller = SlidingPanelController();
@@ -191,12 +198,13 @@ class _TripDetailsState extends State<TripDetails> {
                   child: IconButton(
                     onPressed: () {
                       // Navigator.of(context).pushNamed("paymentMethod");
-                      showPaymentMethod(context, paymentOption: _paymentOptions,
-                          (text) {
+                      showPaymentMethod(context, (text) async {
                         setState(() {
                           _paymentOptions = text;
+                          passenger.payment_method = text;
                         });
-                      });
+                        await ApiService().updatePassenger(passenger);
+                      }, paymentOption: passenger.payment_method);
                     },
                     icon: Icon(Icons.add_card_outlined, color: Colors.black54),
                     padding: EdgeInsets.zero,
@@ -221,7 +229,8 @@ class _TripDetailsState extends State<TripDetails> {
                       ),
                     ),
                     onPressed: () {
-                      debugPrint("\n\ncarType:$carType\n\npaymentMethod:$_paymentOptions\n\ninstructions:$_instructions");
+                      debugPrint(
+                          "\n\ncarType:$carType\n\npaymentMethod:$_paymentOptions\n\ninstructions:$_instructions");
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => RequestingRide(
                                 rquestRide: RequestRide(
@@ -295,48 +304,51 @@ class _TripDetailsState extends State<TripDetails> {
               child: Icon(Icons.directions_run, color: Colors.white),
             ),
             enabledMapButton: false,
-            onTap: () {
-              showLocationPicker(
-                context,
-                _locationPickerInputController,
-                widget.pickupPlace,
-                (Place? newPlace) {
-                  widget.changePlaceValue(newPlace!, widget.destinationPlace!);
-                  // restart route restart mapRoutes
-                },
-              );
-            },
+            // onTap: () {
+            //   showLocationPicker(
+            //     context,
+            //     _locationPickerInputController,
+            //     widget.pickupPlace,
+            //     (Place? newPlace) {
+            //       widget.changePlaceValue(newPlace!, widget.destinationPlace!);
+            //       // restart route restart mapRoutes
+            //     },
+            //   );
+            // },
+            onTap: () => showSelectedPlace(widget.pickupPlace!),
           ),
           Container(
               padding: EdgeInsets.fromLTRB(40, 0, 0, 0),
               child: const Divider()),
           addressPointes(
-              title: "~ 14 min",
-              subtitle: widget.destinationPlace!.displayName,
-              icon: Container(
-                width: 48.0,
-                height: 48.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: const Icon(
-                  Icons.flag,
-                  color: Colors.black, // Yellow pickup icon background
-                  size: 32.0,
-                ),
+            title: "~ 14 min",
+            subtitle: widget.destinationPlace!.displayName,
+            icon: Container(
+              width: 48.0,
+              height: 48.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
               ),
-              enabledMapButton: true,
-              onTap: () {
-                showLocationPicker(
-                  context,
-                  _locationDestinationInputController,
-                  widget.destinationPlace,
-                  (Place? newPlace) {
-                    widget.changePlaceValue(widget.pickupPlace!, newPlace!);
-                    // restart route restart mapRoutes
-                  },
-                );
-              }),
+              child: const Icon(
+                Icons.flag,
+                color: Colors.black, // Yellow pickup icon background
+                size: 32.0,
+              ),
+            ),
+            enabledMapButton: true,
+            // onTap: () {
+            //   showLocationPicker(
+            //     context,
+            //     _locationDestinationInputController,
+            //     widget.destinationPlace,
+            //     (Place? newPlace) {
+            //       widget.changePlaceValue(widget.pickupPlace!, newPlace!);
+            //       // restart route restart mapRoutes
+            //     },
+            //   );
+            // }
+            onTap: () => showSelectedPlace(widget.destinationPlace!),
+          ),
           Container(
               padding: EdgeInsets.fromLTRB(2, 0, 0, 0), child: const Divider()),
           CarSelectionWidget(
@@ -379,7 +391,8 @@ class _TripDetailsState extends State<TripDetails> {
                           const Icon(Icons.directions_run, color: Colors.white),
                     ),
                     enabledMapButton: false,
-                    onTap: () => _showPickupPicker(),
+                    // onTap: () => _showPickupPicker(),
+                    onTap: () => showSelectedPlace(widget.pickupPlace!),
                   ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -402,7 +415,8 @@ class _TripDetailsState extends State<TripDetails> {
                       ),
                     ),
                     enabledMapButton: true,
-                    onTap: () => _showDestinationPicker(),
+                    // onTap: () => _showDestinationPicker(),
+                    onTap: () => showSelectedPlace(widget.destinationPlace!),
                   ),
               ],
             ),
@@ -434,9 +448,11 @@ class _TripDetailsState extends State<TripDetails> {
           (text) {
             setState(() {
               _paymentOptions = text;
+              passenger.payment_method = text;
             });
+            ApiService().updatePassenger(passenger);
           },
-          paymentOption: _paymentOptions,
+          paymentOption: passenger.payment_method,
         );
       },
       child: Container(
@@ -533,27 +549,34 @@ class _TripDetailsState extends State<TripDetails> {
     );
   }
 
-  void _showPickupPicker() {
-    showLocationPicker(
-      context,
-      _locationPickerInputController,
-      widget.pickupPlace,
-      (Place? newPlace) {
-        widget.changePlaceValue(newPlace!, widget.destinationPlace!);
-        // restart route restart mapRoutes
-      },
-    );
-  }
+  // void _showPickupPicker() {
+  //   showLocationPicker(
+  //     context,
+  //     _locationPickerInputController,
+  //     widget.pickupPlace,
+  //     (Place? newPlace) {
+  //       widget.changePlaceValue(newPlace!, widget.destinationPlace!);
+  //       // restart route restart mapRoutes
+  //     },
+  //   );
+  // }
 
-  void _showDestinationPicker() {
-    showLocationPicker(
-      context,
-      _locationDestinationInputController,
-      widget.destinationPlace,
-      (Place? newPlace) {
-        widget.changePlaceValue(widget.pickupPlace!, newPlace!);
-        // restart route restart mapRoutes
-      },
+  void showSelectedPlace(Place place) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+          builder: (context) => ShowSelectedMap(selectedPlace: place)),
     );
-  }
+  } 
+
+  // void _showDestinationPicker() {
+  //   showLocationPicker(
+  //     context,
+  //     _locationDestinationInputController,
+  //     widget.destinationPlace,
+  //     (Place? newPlace) {
+  //       widget.changePlaceValue(widget.pickupPlace!, newPlace!);
+  //       // restart route restart mapRoutes
+  //     },
+  //   );
+  // }
 }

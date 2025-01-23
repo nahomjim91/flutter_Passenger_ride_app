@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:ride_app/Auth/api_service.dart';
 // import 'package:ride_app/Auth/apiService.dart';
 import 'package:ride_app/dataCustomize.dart';
 import 'package:ride_app/navigatorPage.dart';
 import 'package:ride_app/loginOrSignup.dart';
 import 'package:ride_app/passenger.dart';
+
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -16,6 +18,7 @@ class AuthPage extends StatefulWidget {
 
 class _AuthPageState extends State<AuthPage> {
   final ApiService _apiService = ApiService();
+  // ignore: unused_field
   bool _isInitialLoad = true;
 
   // Helper method to check if passenger data is complete
@@ -29,29 +32,13 @@ class _AuthPageState extends State<AuthPage> {
         passenger.phone_number != 'Unknown Number';
   }
 
-  Future<Passenger?> _fetchPassengerData(String uid) async {
-    try {
-      debugPrint('Fetching passenger data for UID: $uid');
-      if (_isInitialLoad) {
-        await Future.delayed(const Duration(seconds: 2));
-        _isInitialLoad = false;
-      }
-
-      final passenger = await _apiService.getPassenger(uid);
-      debugPrint('Passenger data received: ${passenger.toString()}');
-      return passenger;
-    } catch (e) {
-      debugPrint('Error fetching passenger data: $e');
-      return null;
-    }
-  }
-
   Future<Passenger?> _retryWithBackoff(String uid,
       {int maxAttempts = 3}) async {
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         final passenger = await _apiService.getPassenger(uid);
         if (passenger != null) {
+          await context.read<PassengerProvider>().updatePassenger(passenger);
           return passenger;
         }
       } catch (e) {
@@ -106,7 +93,7 @@ class _AuthPageState extends State<AuthPage> {
                   } else {
                     debugPrint(
                         'Complete passenger data. Redirecting to NavigatorPage.');
-                    return NavigatorPage(passenger: passenger);
+                    return NavigatorPage();
                   }
                 }
 

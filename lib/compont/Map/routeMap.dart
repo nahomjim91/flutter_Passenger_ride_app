@@ -89,7 +89,7 @@ class _RouteMapState extends State<RouteMap> {
           ),
           carPosition);
       print(
-          'Car at ${carPosition.latitude}, ${carPosition.longitude}: $distance meters');
+          'Car at ${carPosition.latitude}, ${carPosition.longitude} distance: $distance meters');
       return distance <= searchRadius;
     }).toList();
 

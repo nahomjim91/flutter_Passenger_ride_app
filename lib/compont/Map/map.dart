@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as geo;
+import 'package:ride_app/compont/buttons.dart';
 
 class MapCustome extends StatefulWidget {
   final Function(String address, LatLng coordinates) onLocationPicked;
@@ -11,7 +12,7 @@ class MapCustome extends StatefulWidget {
   const MapCustome({
     Key? key,
     required this.onLocationPicked,
-    this.isDisplayOnly = true,
+    this.isDisplayOnly = false,
   }) : super(key: key);
 
   @override
@@ -241,97 +242,237 @@ class _MapCustomeState extends State<MapCustome> {
               markers: [
                 Marker(
                   point: _currentPosition,
-                  width: 80,
-                  height: 80,
-                  builder: (context) => const Icon(
-                    Icons.my_location,
-                    color: Colors.blue,
-                    size: 30,
+                  width: 50,
+                  height: 50,
+                  builder: (context) => Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                if (_selectedPosition != _currentPosition)
+                if (_selectedPosition != _currentPosition &&
+                    !widget.isDisplayOnly)
                   Marker(
                     point: _selectedPosition,
-                    width: 80,
-                    height: 80,
-                    builder: (context) => const Icon(
-                      Icons.location_pin,
-                      color: Colors.red,
-                      size: 40,
+                    width: 50,
+                    height: 50,
+                    builder: (context) => Column(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.location_on,
+                            color: Colors.white,
+                            size: 25,
+                          ),
+                        ),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],
             ),
           ],
         ),
+
+        // Back Button
+        Positioned(
+          top: 40,
+          left: 16,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => Navigator.of(context).pop(),
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Icon(Icons.arrow_back, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        //Map Button
         Positioned(
           right: 16,
-          bottom: 100,
+          bottom: 220,
           child: Column(
             children: [
-              FloatingActionButton(
-                heroTag: 'currentLocation',
-                onPressed: _moveToCurrentLocation,
-                child: const Icon(Icons.my_location),
-              ),
-              const SizedBox(height: 8),
-              FloatingActionButton(
-                heroTag: 'zoomIn',
-                onPressed: () {
-                  final currentZoom = _mapController.zoom;
-                  _mapController.move(_mapController.center, currentZoom + 1);
-                },
-                child: const Icon(Icons.add),
-              ),
-              const SizedBox(height: 8),
-              FloatingActionButton(
-                heroTag: 'zoomOut',
-                onPressed: () {
-                  final currentZoom = _mapController.zoom;
-                  _mapController.move(_mapController.center, currentZoom - 1);
-                },
-                child: const Icon(Icons.remove),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    MapButton(
+                      icon: Icons.my_location,
+                      onPressed: _moveToCurrentLocation,
+                      topRadius: true,
+                    ),
+                    const Divider(height: 1),
+                    MapButton(
+                      icon: Icons.add,
+                      onPressed: () {
+                        final currentZoom = _mapController.zoom;
+                        _mapController.move(
+                            _mapController.center, currentZoom + 1);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    MapButton(
+                      icon: Icons.remove,
+                      onPressed: () {
+                        final currentZoom = _mapController.zoom;
+                        _mapController.move(
+                            _mapController.center, currentZoom - 1);
+                      },
+                      bottomRadius: true,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        if (widget.isDisplayOnly)
+
+        // Location Details Card
+        if (!widget.isDisplayOnly)
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: 16,
+            right: 16,
+            bottom: 16,
             child: Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.white,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Selected Location:',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  if (_isAddressLoading)
-                    const LinearProgressIndicator()
-                  else
-                    Text(
-                      _selectedAddress,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        widget.onLocationPicked(
-                            _selectedAddress, _selectedPosition);
-                        // Navigator.of(context).pop();
-                      },
-                      child: const Text('Confirm Location'),
-                    ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 2),
                   ),
                 ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                size: 16,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Selected Location',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (_isAddressLoading)
+                      const LinearProgressIndicator()
+                    else
+                      Text(
+                        'Coordinates: ${_selectedAddress}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                      ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        onPressed: () {
+                          widget.onLocationPicked(
+                              _selectedAddress, _selectedPosition);
+                          // Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Confirm Location',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

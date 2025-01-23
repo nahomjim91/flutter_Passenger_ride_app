@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
-import 'package:ride_app/compont/location_search.dart';
+import 'package:ride_app/compont/Map/location_search.dart';
 
 class SavePlaces extends StatefulWidget {
   const SavePlaces({super.key});

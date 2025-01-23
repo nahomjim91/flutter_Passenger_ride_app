@@ -45,7 +45,7 @@ dependencies:
   firebase_auth: ^5.3.4
   firebase_core: ^3.9.0
   google_sign_in: ^6.2.2
-  cloud_firestore: 5.6.0 # Use the latest version
+  cloud_firestore: 5.6.0 
   location: ^5.0.3
   flutter_map: ^4.0.0
   latlong2: ^0.8.0
@@ -54,13 +54,11 @@ dependencies:
   flutter_typeahead: ^5.2.0  
   image_picker: ^1.0.7
   firebase_storage: 12.3.7
-  supabase_flutter: ^2.3.4
-  amazon_cognito_identity_dart_2: ^3.5.0
-  aws_s3_api: ^2.0.0
   file_picker: ^8.1.7
   http_parser: ^4.0.2
   camera: ^0.11.0+2
   permission_handler: ^11.3.1
+  provider: ^6.0.5
 
   
 dev_dependencies:

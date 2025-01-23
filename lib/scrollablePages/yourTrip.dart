@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
-import 'package:ride_app/compont/routeMap.dart';
+import 'package:ride_app/compont/Map/routeMap.dart';
 import 'package:ride_app/compont/tripDetails.dart';
 
 // ignore: must_be_immutable

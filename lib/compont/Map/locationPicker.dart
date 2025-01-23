@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ride_app/compont/map.dart';
+import 'package:ride_app/compont/Map/map.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 
 class LocationPicker extends StatefulWidget {
@@ -49,31 +49,22 @@ class _LocationPickerState extends State<LocationPicker> {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Select Location'),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            body: MapCustome(
-              onLocationPicked: (address, coordinates) {
-                // Create a fallback address if the geocoding fails
-                String fallbackAddress =
-                    'Location (${coordinates.latitude.toStringAsFixed(4)}°, '
-                    '${coordinates.longitude.toStringAsFixed(4)}°)';
+          builder: (context) => MapCustome(
+            onLocationPicked: (address, coordinates) {
+              // Create a fallback address if the geocoding fails
+              String fallbackAddress =
+                  'Location (${coordinates.latitude.toStringAsFixed(4)}°, '
+                  '${coordinates.longitude.toStringAsFixed(4)}°)';
 
-                Navigator.pop(
-                  context,
-                  Place(
-                    displayName: address.isEmpty ? fallbackAddress : address,
-                    latitude: coordinates.latitude,
-                    longitude: coordinates.longitude,
-                  ),
-                );
-              },
-            ),
+              Navigator.pop(
+                context,
+                Place(
+                  displayName: address.isEmpty ? fallbackAddress : address,
+                  latitude: coordinates.latitude,
+                  longitude: coordinates.longitude,
+                ),
+              );
+            },
           ),
         ),
       );

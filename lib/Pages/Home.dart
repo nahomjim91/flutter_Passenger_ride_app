@@ -1,20 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/compont/drawer.dart';
-import 'package:ride_app/compont/firebaseUtillies.dart';
+// import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';
-import 'package:ride_app/compont/map.dart';
+import 'package:ride_app/compont/Map/map.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/scrollablePages/sliding_box.dart';
+import 'package:ride_app/scrollablePages/yourTrip.dart';
 
 // ignore: must_be_immutable
 class HomePage extends StatefulWidget {
-  Passenger passenger;
-  HomePage({super.key, required this.passenger});
+  // Passenger passenger;
+  HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -64,6 +66,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Passenger passenger = Provider.of<PassengerProvider>(context).passenger!;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -81,7 +84,7 @@ class _HomePageState extends State<HomePage> {
       drawer: FutureBuilder<Passenger?>(
         future:
             // Firebaseutillies().getPassengerFromFirestore(widget.passenger.id),
-            ApiService().getPassenger(widget.passenger.id),
+            ApiService().getPassenger(passenger.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator(); // or any other loading indicator
@@ -101,20 +104,20 @@ class _HomePageState extends State<HomePage> {
         children: [
           MapCustome(
             onLocationPicked: handleLocationPicked,
-            isDisplayOnly: false,
+            isDisplayOnly: true,
           ),
 
           ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) =>
-                      // Yourtrip(destinationPlace: pointB, pickupPlace: pointA)
-                      EditProfilePage(
-                          passenger: widget.passenger,
-                          setPassenger: (Passenger passenger) => setState(() {
-                                widget.passenger = passenger;
-                              })),
-                ));
+                    builder: (context) =>
+                        Yourtrip(destinationPlace: pointB, pickupPlace: pointA)
+                    // EditProfilePage(
+                    //     passenger: widget.passenger,
+                    //     setPassenger: (Passenger passenger) => setState(() {
+                    //           widget.passenger = passenger;
+                    //         })),
+                    ));
               },
               child: const Icon(
                 Icons.add_box,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:ride_app/compont/locationPicker.dart';
+import 'package:ride_app/compont/Map/locationPicker.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 
 void showContact(BuildContext context) {

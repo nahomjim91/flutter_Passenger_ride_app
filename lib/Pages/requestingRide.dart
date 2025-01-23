@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
-import 'package:ride_app/compont/routeMap.dart';
+import 'package:ride_app/compont/Map/routeMap.dart';
 import 'package:ride_app/scrollablePages/requestingRideDetail.dart';
 import 'package:ride_app/compont/tripDetails.dart';
 

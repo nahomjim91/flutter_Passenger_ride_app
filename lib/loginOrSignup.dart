@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ride_app/Pages/poeLogin.dart';
-import 'package:ride_app/Pages/poeSignup.dart';
+import 'package:ride_app/Pages/Login.dart';
+import 'package:ride_app/Pages/Signup.dart';
 
 class LoginOrSignup extends StatefulWidget {
   const LoginOrSignup({super.key});

@@ -46,24 +46,24 @@
 
 **Table Name:** `drivers`
 
-|Column Name|Data Type|Constraints|Description|
-|---|---|---|---|
-|`driver_id`|INT|PRIMARY KEY, AUTO_INCREMENT|Unique identifier for each driver.|
-|`phone_number`|VARCHAR(15)|UNIQUE, NOT NULL|Primary identifier for login and communication.|
-|`city`|VARCHAR(50)|NOT NULL|City of service.|
-|`first_name`|VARCHAR(50)|NOT NULL|Driver's first name.|
-|`last_name`|VARCHAR(50)|NOT NULL|Driver's last name.|
-|`profile_photo`|BLOB|NOT NULL|Photo taken via camera for identification.|
-|`vehicle_make`|VARCHAR(50)|NOT NULL|Vehicle's make (e.g., Toyota, Ford).|
-|`vehicle_model`|VARCHAR(50)|NOT NULL|Model of the vehicle.|
-|`vehicle_color`|VARCHAR(30)|NOT NULL|Vehicle color.|
-|`vehicle_year`|INT|NOT NULL|Vehicle manufacture year.|
-|`license_plate`|VARCHAR(20)|NOT NULL, UNIQUE|Vehicle's license plate.|
-|`license_number`|VARCHAR(30)|NOT NULL|Driver's license number.|
-|`license_country`|VARCHAR(50)|NOT NULL|Country of license issuance.|
-|`license_issue_date`|DATE|NOT NULL|License issue date.|
-|`license_expiry_date`|DATE|NOT NULL|License expiration date.|
-|`created_at`|DATETIME|DEFAULT CURRENT_TIMESTAMP|Account creation timestamp.|
+| Column Name           | Data Type   | Constraints                 | Description                                     |
+| --------------------- | ----------- | --------------------------- | ----------------------------------------------- |
+| `driver_id`           | INT         | PRIMARY KEY, AUTO_INCREMENT | Unique identifier for each driver.              |
+| `phone_number`        | VARCHAR(15) | UNIQUE, NOT NULL            | Primary identifier for login and communication. |
+| `city`                | VARCHAR(50) | NOT NULL                    | City of service.                                |
+| `first_name`          | VARCHAR(50) | NOT NULL                    | Driver's first name.                            |
+| `last_name`           | VARCHAR(50) | NOT NULL                    | Driver's last name.                             |
+| `profile_photo`       | BLOB        | NOT NULL                    | Photo taken via camera for identification.      |
+| `vehicle_make`        | VARCHAR(50) | NOT NULL                    | Vehicle's make (e.g., Toyota, Ford).            |
+| `vehicle_model`       | VARCHAR(50) | NOT NULL                    | Model of the vehicle.                           |
+| `vehicle_color`       | VARCHAR(30) | NOT NULL                    | Vehicle color.                                  |
+| `vehicle_year`        | INT         | NOT NULL                    | Vehicle manufacture year.                       |
+| `license_plate`       | VARCHAR(20) | NOT NULL, UNIQUE            | Vehicle's license plate.                        |
+| `license_number`      | VARCHAR(30) | NOT NULL                    | Driver's license number.                        |
+| `license_country`     | VARCHAR(50) | NOT NULL                    | Country of license issuance.                    |
+| `license_issue_date`  | DATE        | NOT NULL                    | License issue date.                             |
+| `license_expiry_date` | DATE        | NOT NULL                    | License expiration date.                        |
+| `created_at`          | DATETIME    | DEFAULT CURRENT_TIMESTAMP   | Account creation timestamp.                     |
 
 **Additional Information:**
 

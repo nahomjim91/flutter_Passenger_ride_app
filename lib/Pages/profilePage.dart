@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/uploadImage.dart';
 import 'package:ride_app/passenger.dart';
 
 // ignore: must_be_immutable
 class ProfilePage extends StatefulWidget {
-  Passenger passenger;
-  ProfilePage({super.key, required this.passenger});
+  ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -15,6 +15,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
+  Passenger passenger = Provider.of<PassengerProvider>(context).passenger!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -28,11 +29,10 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           children: [
             ProfilePic(
-              passenger: widget.passenger,
               isShowPhotoUpload: false,
             ),
             Text(
-              "${widget.passenger.first_name} ${widget.passenger.last_name}",
+              "${passenger.first_name} ${passenger.last_name}",
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const Divider(height: 16.0 * 2),
@@ -43,11 +43,11 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             Info(
               infoKey: "Phone",
-              info: widget.passenger.phone_number,
+              info: passenger.phone_number,
             ),
             Info(
               infoKey: "Email Address",
-              info: widget.passenger.email,
+              info: passenger.email,
             ),
             const SizedBox(height: 16.0),
             Align(
@@ -79,13 +79,11 @@ class _ProfilePageState extends State<ProfilePage> {
 class ProfilePic extends StatefulWidget {
   ProfilePic({
     super.key,
-    required this.passenger,
     this.isShowPhotoUpload = false,
     this.imageUploadBtnPress,
     this.resized = false,
   });
 
-  Passenger passenger;
   final bool resized;
   final bool isShowPhotoUpload;
   final VoidCallback? imageUploadBtnPress;
@@ -97,6 +95,7 @@ class ProfilePic extends StatefulWidget {
 class _ProfilePicState extends State<ProfilePic> {
   @override
   Widget build(BuildContext context) {
+    Passenger passenger = Provider.of<PassengerProvider>(context).passenger!;
     return Container(
       padding: EdgeInsets.all(widget.resized ? 10 : 16.0),
       margin: EdgeInsets.symmetric(vertical: widget.resized ? 10 : 16.0),
@@ -115,7 +114,7 @@ class _ProfilePicState extends State<ProfilePic> {
             backgroundColor: Colors.grey.shade800,
             child: ClipOval(
               child: Image.network(
-                "http://127.0.0.1:8000${widget.passenger.profile_photo!}",
+                "http://127.0.0.1:8000${passenger.profile_photo!}",
                 width: widget.resized ? 120 : 100,
                 height: widget.resized ? 120 : 100,
                 fit: BoxFit.cover,
@@ -156,12 +155,12 @@ class _ProfilePicState extends State<ProfilePic> {
             InkWell(
               onTap: () => Uploadimage().pickAndUploadImage(
                 context,
-                widget.passenger,
+                passenger,
                 (String newPhotoPath) {
                   setState(() {
-                    widget.passenger.profile_photo = newPhotoPath;
+                    passenger.profile_photo = newPhotoPath;
                     Firebaseutillies()
-                        .savePassengerToFirestore(widget.passenger);
+                        .savePassengerToFirestore(passenger);
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

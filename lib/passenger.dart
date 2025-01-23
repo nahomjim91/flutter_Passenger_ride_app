@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:ride_app/Auth/api_service.dart';
+
 class Passenger {
   String id;
   String phone_number;
@@ -36,7 +39,7 @@ class Passenger {
       profile_photo: profile_photo ?? this.profile_photo,
       email: email ?? this.email,
       created_at: created_at,
-      payment_method:payment_method ?? this.payment_method,
+      payment_method: payment_method ?? this.payment_method,
     );
   }
 
@@ -67,4 +70,61 @@ class Passenger {
       'payment_method': payment_method
     };
   }
+}
+
+class PassengerProvider extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
+  Passenger? _passenger;
+  bool _isLoading = false;
+  String? _error;
+
+  Passenger? get passenger => _passenger;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  // Initialize passenger data
+  Future<void> initializePassenger(String uid) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final passenger = await _apiService.getPassenger(uid);
+      _passenger = passenger;
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error initializing passenger: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // Update passenger data
+  Future<void> updatePassenger(Passenger updatedPassenger) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Assuming your ApiService has an updatePassenger method
+      _passenger = updatedPassenger;
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error updating passenger: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // Clear passenger data (e.g., on logout)
+  void clearPassenger() {
+    _passenger = null;
+    _error = null;
+    notifyListeners();
+  }
+
+
 }

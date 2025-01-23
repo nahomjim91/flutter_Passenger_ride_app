@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Pages with Details.md",
+                "file": "Database Schema.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Pages with Details"
+              "title": "Database Schema"
             }
           }
         ]
@@ -164,9 +164,9 @@
   },
   "active": "74e5bccfbb6ec052",
   "lastOpenFiles": [
-    "Database Schema.md",
     "Main Features.md",
     "Database Schema Requirements.md",
-    "Pages with Details.md"
+    "Pages with Details.md",
+    "Database Schema.md"
   ]
 }

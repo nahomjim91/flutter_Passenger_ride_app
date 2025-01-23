@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ride_app/passenger.dart';
+import 'package:provider/provider.dart';
 
 class ApiService {
   final String baseUrl = 'http://127.0.0.1:8000/api/passenger';
@@ -82,15 +83,16 @@ class ApiService {
     }
   }
 
-  Future<Passenger> updatePassenger(String id, Passenger passenger) async {
+  Future<Passenger> updatePassenger(Passenger passenger) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/$id'),
+        Uri.parse('$baseUrl/${passenger.id}'),
         headers: _headers,
         body: json.encode(passenger.toJson()),
       );
       if (response.statusCode == 200) {
         final passengerJson = json.decode(response.body)['passenger'];
+
         return Passenger.fromJson(passengerJson);
       } else {
         throw Exception('Failed to update passenger');

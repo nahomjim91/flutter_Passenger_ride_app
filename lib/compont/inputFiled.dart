@@ -9,6 +9,7 @@ Widget CustomInputFiled(
   String validatorType, {
   TextEditingController? password,
   bool enabled = true,
+  bool checkPhone = false,
 }) {
   final validator = Validator().whichValidator(validatorType);
 
@@ -16,6 +17,9 @@ Widget CustomInputFiled(
     valueListenable: obscureTextNotifier,
     builder: (context, obscureText, child) {
       return TextFormField(
+        onTap: () => controller.text.isNotEmpty && checkPhone
+            ? controller.clear()
+            : null,
         controller: controller,
         obscureText: obscureText,
         enabled: enabled,

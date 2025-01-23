@@ -68,9 +68,10 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_selectedMethod != null) {
                 widget.onPaymentMethodSelected(_selectedMethod!);
+                // await ApiService().updatePassenger(passenger.);
                 Navigator.pop(context);
               }
             },
@@ -181,7 +182,7 @@ void showPaymentMethod(BuildContext context, fallbackFunction,
         defaultMethod: paymentOption,
         onPaymentMethodSelected: (selectedMethod) {
           // Handle the selected payment method here
-              fallbackFunction(selectedMethod);
+          fallbackFunction(selectedMethod);
           switch (selectedMethod) {
             case 'telebirr':
               // Handle Telebirr payment

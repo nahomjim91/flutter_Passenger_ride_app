@@ -124,3 +124,43 @@ Widget addressPointes(
         (enabledtrailing ?? false) ? const Icon(Icons.arrow_forward_ios) : null,
   );
 }
+
+
+class MapButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final bool topRadius;
+  final bool bottomRadius;
+
+  const MapButton({
+    required this.icon,
+    required this.onPressed,
+    this.topRadius = false,
+    this.bottomRadius = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(topRadius ? 12 : 0),
+          bottom: Radius.circular(bottomRadius ? 12 : 0),
+        ),
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(topRadius ? 12 : 0),
+              bottom: Radius.circular(bottomRadius ? 12 : 0),
+            ),
+          ),
+          child: Icon(icon, color: Colors.black87),
+        ),
+      ),
+    );
+  }
+}

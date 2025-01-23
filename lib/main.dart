@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ride_app/auth_page.dart';
-
+import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:ride_app/passenger.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -10,7 +11,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => PassengerProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -25,7 +31,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0C3B2E)),
           fontFamily: 'Poppins',
         ),
-        home: const AuthPage() // from poe
+        home: AuthPage() // from poe
         );
   }
 }
