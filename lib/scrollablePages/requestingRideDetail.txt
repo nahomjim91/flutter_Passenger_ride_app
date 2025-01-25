@@ -9,7 +9,6 @@ import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/compont/tripDetails.dart';
 import 'package:ride_app/passenger.dart';
-import 'package:ride_app/request_ride.dart';
 
 // ignore: must_be_immutable
 class RequestingRideDetails extends StatefulWidget {
@@ -20,15 +19,13 @@ class RequestingRideDetails extends StatefulWidget {
       this.duration,
       this.routePoints,
       required this.addingStops,
-      required this.removedStops,
-      this.sendRideRequest});
+     updatePlaces});
 
   RequestRide rquestRide;
   double? distance;
   double? duration;
   List<LatLng>? routePoints;
-  void Function(Place) removedStops;
-  void Function()? sendRideRequest;
+  // void Function(Place, int) updatePlaces;
   void Function(Place) addingStops;
 
   @override
@@ -337,13 +334,18 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                 showSelectedPlace(widget.rquestRide.pickupPlace);
               },
             ),
+            // Container(
+            //     padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
+            //     child: const Divider(height: 32)),
             if (widget.rquestRide.stopsPlaces != null)
               for (int i = 0; i < widget.rquestRide.stopsPlaces!.length; i++)
                 Column(children: [
                   Dismissible(
                     direction: DismissDirection.endToStart,
                     onDismissed: (direction) {
-                      widget.removedStops(widget.rquestRide.stopsPlaces![i]);
+                      setState(() {
+                        widget.rquestRide.stopsPlaces!.removeAt(i);
+                      });
                     },
                     background: Container(
                       color: Colors.red,
@@ -402,7 +404,6 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
                   null,
                   (Place? newPlace) {
                     widget.addingStops(newPlace!);
-                    // Navigator.pop(context);
                   },
                 );
               },

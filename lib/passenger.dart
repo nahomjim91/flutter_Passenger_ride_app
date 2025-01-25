@@ -73,6 +73,7 @@ class Passenger {
 }
 
 class PassengerProvider extends ChangeNotifier {
+  PassengerProvider();
   final ApiService _apiService = ApiService();
   Passenger? _passenger;
   bool _isLoading = false;
@@ -99,6 +100,11 @@ class PassengerProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+ static PassengerProvider? _instance;
+  factory PassengerProvider.getInstance() {
+    _instance ??= PassengerProvider();
+    return _instance!;
   }
 
   // Update passenger data

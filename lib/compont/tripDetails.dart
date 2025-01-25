@@ -10,23 +10,8 @@ import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/compont/Map/showSelectedMap.dart';
 import 'package:ride_app/passenger.dart';
+import 'package:ride_app/request_ride.dart';
 
-class RequestRide {
-  Place pickupPlace, destinationPlace;
-  String instructions;
-  String paymentMethod;
-  String carType;
-  List<Place>? stopsPlaces;
-
-  RequestRide(
-      {required this.pickupPlace,
-      required this.destinationPlace,
-      required this.paymentMethod,
-      required this.carType,
-      required this.instructions,
-      List<Place>? stopsPlaces})
-      : this.stopsPlaces = stopsPlaces ?? const [];
-}
 
 // ignore: must_be_immutable
 class TripDetails extends StatefulWidget {
@@ -356,6 +341,7 @@ class _TripDetailsState extends State<TripDetails> {
               whichCar: (selectedCar) {
                 setState(() {
                   carType = selectedCar;
+                  debugPrint("carType:$carType");
                 });
               })
         ],
@@ -566,7 +552,7 @@ class _TripDetailsState extends State<TripDetails> {
       MaterialPageRoute(
           builder: (context) => ShowSelectedMap(selectedPlace: place)),
     );
-  } 
+  }
 
   // void _showDestinationPicker() {
   //   showLocationPicker(

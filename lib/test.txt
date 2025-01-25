@@ -1,330 +1,478 @@
+// lib/services/websocket_service.dart
+import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+class WebSocketService {
+  WebSocketChannel? _channel;
+  bool _isConnected = false;
+  final String _baseUrl = 'YOUR_WEBSOCKET_URL'; // Your WebSocket server URL
+  final String _authToken;
+
+  Function(Map<String, dynamic>)? onDriverResponse;
+  Function(String)? onError;
+
+  WebSocketService(this._authToken);
+
+  bool get isConnected => _isConnected;
+
+  void connect(String passengerId) {
+    try {
+      _channel = WebSocketChannel.connect(
+        Uri.parse('$_baseUrl/passenger.$passengerId'),
+      );
+
+      _isConnected = true;
+
+      _channel?.stream.listen(
+        (message) {
+          _handleMessage(message);
+        },
+        onError: (error) {
+          _isConnected = false;
+          onError?.call(error.toString());
+          _reconnect(passengerId);
+        },
+        onDone: () {
+          _isConnected = false;
+          _reconnect(passengerId);
+        },
+      );
+    } catch (e) {
+      _isConnected = false;
+      onError?.call(e.toString());
+    }
+  }
+
+  void _handleMessage(dynamic message) {
+    try {
+      final data = jsonDecode(message);
+      
+      switch (data['event']) {
+        case 'driver.response':
+          onDriverResponse?.call(data['data']);
+          break;
+      }
+    } catch (e) {
+      onError?.call('Error processing message: $e');
+    }
+  }
+
+  void _reconnect(String passengerId) {
+    Future.delayed(Duration(seconds: 5), () {
+      if (!_isConnected) {
+        connect(passengerId);
+      }
+    });
+  }
+
+  void disconnect() {
+    _channel?.sink.close();
+    _isConnected = false;
+  }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////
+// lib/services/ride_request_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:ride_app/passenger.dart';
+import 'package:ride_app/driver.dart';
+import 'package:ride_app/request_ride.dart';
 
-class ApiService {
-  final String baseUrl = 'http://127.0.0.1:8000/api/passenger';
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
-  Future<List<Passenger>> getPassengers() async {
-    try {
-      final response = await http.get(Uri.parse(baseUrl), headers: _headers);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final passengers = (data['passengers'] as List)
-            .map((passengerJson) => Passenger.fromJson(passengerJson))
-            .toList();
-        return passengers;
-      } else {
-        throw Exception('Failed to fetch passengers');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
-    }
-  }
 
-  Future<Passenger?> getPassenger(String id) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/$id'),
-        headers: _headers,
-      );
-      if (response.statusCode == 200) {
-        final passengerJson = json.decode(response.body)['passenger'];
-        return Passenger.fromJson(passengerJson);
-      }
-      return null;
-      // throw Exception('Failed to get passenger');
-    } catch (e) {
-      throw Exception('Error: $e');
-    }
-  }
+class RideRequestService {
+  final String baseUrl = 'http://127.0.0.1:8000';
+  final String authToken;
 
-  Future<Passenger> createPassenger(Passenger passenger) async {
+  RideRequestService(this.authToken);
+
+  Future<Map<String, dynamic>> sendRideRequest(
+    RequestRide requestRide,
+    List<Driver> availableDrivers,
+    String passengerId,
+  ) async {
     try {
       final response = await http.post(
-        Uri.parse(baseUrl),
-        headers: _headers,
-        body: json.encode(passenger.toJson()),
+        Uri.parse('$baseUrl/api/ride-requests'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: jsonEncode({
+          'passenger_id': passengerId,
+          'pickup_place': requestRide.pickupPlace.toJSON(),
+          'destination_place': requestRide.destinationPlace.toJSON(),
+          'stops_places': requestRide.stopsPlaces?.map((p) => p.toJSON()).toList() ?? [],
+          'instructions': requestRide.instructions,
+          'payment_method': requestRide.paymentMethod,
+          'car_type': requestRide.carType,
+          'available_drivers': availableDrivers.map((d) => d.id).toList(),
+        }),
       );
-      if (response.statusCode == 201) {
-        final passengerJson = json.decode(response.body)['passenger'];
-        return Passenger.fromJson(passengerJson);
-      } else {
-        throw Exception(
-            'Failed to create passenger from JSON: ${json.decode(response.body)?['message']}');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
-    }
-  }
 
-  Future<Passenger> updatePassenger(String id, Passenger passenger) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/$id'),
-        headers: _headers,
-        body: json.encode(passenger.toJson()),
-      );
       if (response.statusCode == 200) {
-        final passengerJson = json.decode(response.body)['passenger'];
-        return Passenger.fromJson(passengerJson);
+        return jsonDecode(response.body);
       } else {
-        throw Exception('Failed to update passenger');
+        throw Exception('Failed to send ride request: ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error: $e');
-    }
-  }
-
-  Future<void> deletePassenger(String id) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('$baseUrl/$id'),
-        headers: _headers,
-      );
-      if (response.statusCode != 200) {
-        throw Exception('Failed to delete passenger');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
+      throw Exception('Error sending ride request: $e');
     }
   }
 }
 
-Future<User> signInWithGoogle2Laravel() async {
-    try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
-      // If the user is already signed in, return the user
-      if (currentUser != null) {
-        print("User already signed in: ${currentUser.email}");
-        return currentUser;
-      }
+//////////////////////////////////////////////////////////////////////////////////////////////
 
-      // Trigger Google Sign-In
-      GoogleAuthProvider googleProvider = GoogleAuthProvider();
-
-      // Set custom scopes if needed
-      googleProvider
-        ..addScope('email')
-        ..addScope('profile');
-
-      // Sign in with Firebase
-      await FirebaseAuth.instance.signInWithPopup(googleProvider);
-
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // Create a Passenger object
-        // Check if the user exists in Firestore
-        final existingPassenger =
-            // await Firebaseutillies().getPassengerFromFirestore(user.uid);
-            await apiService.getPassenger(user.uid);
-
-        if (existingPassenger != null) {
-          // User already exists, redirect to home
-          print("User already exists in Firestore. Redirecting to home.");
-          return user;
-        } else {
-          debugPrint(
-              'User does not exist in database. Creating new passenger.');
-          final passenger = Passenger(
-            id: user.uid,
-            phone_number:
-                user.phoneNumber ?? 'Unknown', // Default if no phone number
-            first_name: user.displayName?.split(' ').first ??
-                'Unknown', // Extract first name
-            last_name: 'Unknown', // Extract last name
-            profile_photo: user.photoURL ??
-                "https://lh3.googleusercontent.com/a/AEdFTp4wIcFvcdLSRoBqJsF4Y-lzb_hHL8k7jqnCYBs0=s96-c", // Default profile photo
-            created_at: user.metadata.creationTime?.toIso8601String() ??
-                'Unknown', // Creation time
-            email: user.email ?? 'Unknown', // Default email if null
-          );
-          // await Firebaseutillies().savePassengerToFirestore(passenger);
-          await apiService.createPassenger(passenger);
-
-          print("User signed up: ${user.email},");
-        }
-      }
-      return user!;
-    } catch (e) {
-      // print("Error signing in with Google laravel: $e");
-      throw Exception("Error signing in with Google laravel: $e");
-    }
-  }
-
-Widget ButtonWitGoogle(isloading, toggleLoading) {
-  return OutlinedButton.icon(
-    onPressed: isloading
-        ? null // Disable the button while loading
-        : () async {
-            toggleLoading(); // Start loading
-            try {
-              // await AuthService().signInWithGoogle2();
-              await AuthService().signInWithGoogle2Laravel();
-              toggleLoading(); // Start loading
-            } catch (e) {
-              print("Error: $e");
-            }
-          },
-    icon: !isloading ? const Icon(Icons.g_mobiledata, size: 24) : null,
-    label: isloading
-        ? const SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(
-              color: Color(0xFF0C3B2E),
-              strokeWidth: 2,
-            ),
-          )
-        : const Text('Sign up with Google'),
-    style: OutlinedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      side: const BorderSide(color: Color(0xFF0C3B2E)),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-    ),
-  );
-}
-
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import 'package:ride_app/Auth/api_service.dart';
-// import 'package:ride_app/Auth/apiService.dart';
-import 'package:ride_app/dataCustomize.dart';
-import 'package:ride_app/navigatorPage.dart';
-import 'package:ride_app/loginOrSignup.dart';
+import 'package:ride_app/Auth/web_socket_service.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
+import 'package:ride_app/compont/Map/routeMap.dart';
+import 'package:ride_app/driver.dart';
 import 'package:ride_app/passenger.dart';
+import 'package:ride_app/request_ride.dart';
+import 'package:ride_app/scrollablePages/requestingRideDetail.dart';
 
-class AuthPage extends StatefulWidget {
-  const AuthPage({super.key});
+// ignore: must_be_immutable
+class RequestingRide extends StatefulWidget {
+  RequestingRide({super.key, required this.rquestRide});
+
+  RequestRide rquestRide;
 
   @override
-  State<AuthPage> createState() => _AuthPageState();
+  State<RequestingRide> createState() => _RequestingRideState();
 }
 
-class _AuthPageState extends State<AuthPage> {
-  final ApiService _apiService = ApiService();
-  bool _isInitialLoad = true;
+class _RequestingRideState extends State<RequestingRide> {
+  Timer? _timer;
+  double? distance;
+  double? duration;
+  List<LatLng>? routePoints;
+  late List<Driver> drivers;
+  Key _mapKey = UniqueKey();
+  bool isLoading = false;
+  late Passenger passenger;
+  Driver? currentDriver;
+  bool isDriverFound = false;
 
-  Future<Passenger?> _fetchPassengerData(String uid) async {
-    try {
-      debugPrint('Fetching passenger data for UID: $uid');
-      // Add a small delay on initial load to allow for passenger creation
-      if (_isInitialLoad) {
-        await Future.delayed(const Duration(seconds: 2));
-        _isInitialLoad = false;
+  @override
+  void initState() {
+    super.initState();
+    _loadDrivers();
+    passenger = context.read<PassengerProvider>().passenger!;
+    _setupWebSocketListener();
+  }
+
+  void _setupWebSocketListener() {
+    // Assuming you have a WebSocket service
+    WebSocketService("context").onDriverResponse = (driverData) {
+      if (driverData['status'] == 'accepted') {
+        setState(() {
+          currentDriver =
+              drivers.firstWhere((d) => d.id == driverData['driver_id']);
+          isDriverFound = true;
+        });
       }
+    };
+  }
 
-      final passenger = await _apiService.getPassenger(uid);
-      // future: Firebaseutillies().getPassengerFromFirestore(user.uid),
-      debugPrint('Passenger data received: ${passenger.toString()}');
-      return passenger;
+  Future<void> _loadDrivers() async {
+    setState(() => isLoading = true);
+    try {
+      final fetchedDrivers =
+          await ApiService().getDriverAround(widget.rquestRide.pickupPlace!);
+      setState(() {
+        drivers = fetchedDrivers;
+        debugPrint("drivers: ${drivers.length}");
+      });
     } catch (e) {
-      debugPrint('Error fetching passenger data: $e');
-      // Return null instead of throwing to handle the case where passenger doesn't exist yet
-      return null;
+      debugPrint("Error loading drivers: $e");
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
-  Future<Passenger?> _retryWithBackoff(String uid,
-      {int maxAttempts = 3}) async {
-    for (int attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        final passenger = await _apiService.getPassenger(uid);
-        if (passenger != null) {
-          return passenger;
-        }
-      } catch (e) {
-        debugPrint('Attempt ${attempt + 1} failed: $e');
-      }
+  void _addingStops(Place newPlace) async {
+    await _loadDrivers();
+    setState(() {
+      _mapKey = UniqueKey();
+      final updatedStops =
+          List<Place>.from(widget.rquestRide.stopsPlaces ?? []);
+      updatedStops.add(newPlace);
+      widget.rquestRide.stopsPlaces = updatedStops;
+      _resetRouteData();
+    });
+  }
 
-      // Wait longer between each attempt
-      await Future.delayed(Duration(seconds: attempt + 2));
-    }
-    return null;
+  void _removeStops(Place placeToRemove) async {
+    await _loadDrivers();
+    setState(() {
+      _mapKey = UniqueKey();
+      final updatedStops =
+          List<Place>.from(widget.rquestRide.stopsPlaces ?? []);
+      updatedStops.remove(placeToRemove);
+      widget.rquestRide.stopsPlaces = updatedStops;
+      _resetRouteData();
+    });
+  }
+
+  void _resetRouteData() {
+    distance = null;
+    duration = null;
+    routePoints = null;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    // Clean up WebSocket connection if needed
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, authSnapshot) {
-          if (authSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (authSnapshot.hasData && authSnapshot.data != null) {
-            final user = authSnapshot.data!;
-            debugPrint('User authenticated with UID: ${user.uid}');
-
-            return FutureBuilder<Passenger?>(
-              future: _retryWithBackoff(user.uid),
-              builder: (context, passengerSnapshot) {
-                if (passengerSnapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('Loading your profile...'),
-                      ],
-                    ),
-                  );
-                }
-
-                // If we have passenger data, proceed to appropriate screen
-                if (passengerSnapshot.hasData &&
-                    passengerSnapshot.data != null) {
-                  final passenger = passengerSnapshot.data!;
-                  debugPrint('Passenger data loaded successfully');
-
-                  if (passenger.first_name == 'Unknown' ||
-                      passenger.last_name == 'Unknown') {
-                    return DataCustomize(passenger: passenger);
-                  } else {
-                    return NavigatorPage(passenger: passenger);
-                  }
-                }
-
-                // If we don't have data after retries, show error with retry option
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Unable to load your profile'),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _isInitialLoad = true; // Reset for a fresh attempt
-                          });
-                        },
-                        child: const Text('Retry'),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () async {
-                          await FirebaseAuth.instance.signOut();
-                        },
-                        child: const Text('Sign Out'),
-                      ),
-                    ],
-                  ),
+    return Stack(
+      children: [
+        if (!isLoading)
+          RouteMap(
+            key: _mapKey,
+            availableDriver: drivers,
+            currentDriver: currentDriver, // Pass the current driver if found
+            startPlace: widget.rquestRide.pickupPlace,
+            endPlace: widget.rquestRide.destinationPlace,
+            stops: widget.rquestRide.stopsPlaces,
+            onRouteCalculated: (dist, dur, points) {
+              setState(() {
+                distance = dist;
+                duration = dur;
+                routePoints = points;
+              });
+              debugPrint(
+                  "Route calculated: Distance - $distance, Duration - $duration");
+            },
+          ),
+        Consumer<RideRequestProvider>(
+          builder: (context, provider, child) {
+            switch (provider.status) {
+              case RideRequestStatus.initial:
+                return RequestingRideDetails(
+                  rquestRide: widget.rquestRide,
+                  addingStops: _addingStops,
+                  removeStops: _removeStops,
+                  distance: distance,
+                  duration: duration,
+                  isDriverFound: isDriverFound,
                 );
-              },
-            );
-          }
 
-          return const LoginOrSignup();
-        },
-      ),
+              case RideRequestStatus.searching:
+               return RequestingRideDetails(
+                  rquestRide: widget.rquestRide,
+                  addingStops: _addingStops,
+                  removeStops: _removeStops,
+                  distance: distance,
+                  duration: duration,
+                  isDriverFound: isDriverFound,
+                  onCancel: provider.cancelRequest,
+                );
+
+              case RideRequestStatus.driverFound:
+                return DriverFoundWidget(
+                  driver: provider.currentDriver!,
+                  rideDetails: widget.rquestRide,
+                  distance: distance,
+                  duration: duration,
+                );
+
+              case RideRequestStatus.noDriversAvailable:
+                return NoDriversWidget(
+                  onRetry: () => _sendRideRequest(provider),
+                );
+
+              case RideRequestStatus.error:
+                return RideErrorWidget(
+                  error: provider.error!,
+                  onRetry: () => _sendRideRequest(provider),
+                );
+
+              default:
+                return SizedBox.shrink();
+            }
+          },
+        ),
+      ],
     );
   }
+    void _sendRideRequest(RideRequestProvider provider) async {
+    await provider.sendRideRequest(widget.rquestRide, drivers , passenger.id);
+  }
 }
+//////////////////////////////////////////////////////////////////////////////////////////////
+import 'dart:async';
+
+import 'package:ride_app/Auth/ride_request_service.dart';
+import 'package:ride_app/Auth/web_socket_service.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
+// lib/providers/ride_request_provider.dart
+import 'package:flutter/foundation.dart';
+import 'package:ride_app/driver.dart';
+// import '../services/ride_request_service.dart';
+// import '../services/websocket_service.dart';
+// import '../models/request_ride.dart';
+// import '../models/driver.dart';
+
+class RequestRide {
+  Place pickupPlace, destinationPlace;
+  String instructions;
+  String paymentMethod;
+  String carType;
+  List<Place>? stopsPlaces;
+
+  RequestRide(
+      {required this.pickupPlace,
+      required this.destinationPlace,
+      required this.paymentMethod,
+      required this.carType,
+      required this.instructions,
+      List<Place>? stopsPlaces})
+      : this.stopsPlaces = stopsPlaces ?? const [];
+}
+
+enum RideRequestStatus {
+  initial,
+  searching,
+  driverFound,
+  noDriversAvailable,
+  error
+}
+
+class RideRequestProvider with ChangeNotifier {
+  final RideRequestService _rideRequestService;
+  final WebSocketService _webSocketService;
+  
+  RideRequestStatus _status = RideRequestStatus.initial;
+  String? _error;
+  Driver? _currentDriver;
+  int _currentDriverIndex = 0;
+  List<Driver> _availableDrivers = [];
+  Timer? _driverTimer;
+
+  RideRequestStatus get status => _status;
+  String? get error => _error;
+  Driver? get currentDriver => _currentDriver;
+
+  RideRequestProvider(String authToken)
+      : _rideRequestService = RideRequestService(authToken),
+        _webSocketService = WebSocketService(authToken) {
+    _setupWebSocketCallbacks();
+  }
+
+  void _setupWebSocketCallbacks() {
+    _webSocketService.onDriverResponse = (data) {
+      if (data['status'] == 'accepted') {
+        _status = RideRequestStatus.driverFound;
+        _currentDriver = _availableDrivers.firstWhere(
+          (d) => d.id == data['driver_id']
+        );
+        _driverTimer?.cancel();
+        notifyListeners();
+      }
+    };
+
+    _webSocketService.onError = (error) {
+      _error = error;
+      _status = RideRequestStatus.error;
+      notifyListeners();
+    };
+  }
+
+  Future<void> sendRideRequest(
+    RequestRide requestRide,
+    List<Driver> drivers,
+    String passengerId,
+  ) async {
+    try {
+      _status = RideRequestStatus.searching;
+      _availableDrivers = drivers;
+      _currentDriverIndex = 0;
+      notifyListeners();
+
+      // Connect to WebSocket
+      _webSocketService.connect(passengerId);
+
+      // Send initial request
+      await _sendToNextDriver(requestRide, passengerId);
+    } catch (e) {
+      _error = e.toString();
+      _status = RideRequestStatus.error;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _sendToNextDriver(RequestRide requestRide, String passengerId) async {
+    if (_currentDriverIndex >= _availableDrivers.length) {
+      _status = RideRequestStatus.noDriversAvailable;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      // Send request to current driver
+      await _rideRequestService.sendRideRequest(
+        requestRide,
+        [_availableDrivers[_currentDriverIndex]],
+        passengerId,
+      );
+
+      // Set timer for next driver
+      _driverTimer?.cancel();
+      _driverTimer = Timer(Duration(seconds: 20), () {
+        _currentDriverIndex++;
+        _sendToNextDriver(requestRide, passengerId);
+      });
+    } catch (e) {
+      _error = e.toString();
+      _status = RideRequestStatus.error;
+      notifyListeners();
+    }
+  }
+
+  void cancelRequest() {
+    _driverTimer?.cancel();
+    _webSocketService.disconnect();
+    _status = RideRequestStatus.initial;
+    _currentDriver = null;
+    _currentDriverIndex = 0;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _driverTimer?.cancel();
+    _webSocketService.disconnect();
+    super.dispose();
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (_) => RideRequestProvider('YOUR_AUTH_TOKEN'),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => PassengerProvider(),
+      ),
+    ],
+    child: const MyApp(),
+  ));
+}
+

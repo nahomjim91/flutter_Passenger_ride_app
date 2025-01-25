@@ -1,0 +1,147 @@
+import 'dart:async';
+
+import 'package:ride_app/Auth/ride_request_service.dart';
+import 'package:ride_app/Auth/web_socket_service.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
+// lib/providers/ride_request_provider.dart
+import 'package:flutter/foundation.dart';
+import 'package:ride_app/driver.dart';
+// import '../services/ride_request_service.dart';
+// import '../services/websocket_service.dart';
+// import '../models/request_ride.dart';
+// import '../models/driver.dart';
+
+class RequestRide {
+  Place pickupPlace, destinationPlace;
+  String instructions;
+  String paymentMethod;
+  String carType;
+  List<Place>? stopsPlaces;
+
+  RequestRide(
+      {required this.pickupPlace,
+      required this.destinationPlace,
+      required this.paymentMethod,
+      required this.carType,
+      required this.instructions,
+      List<Place>? stopsPlaces})
+      : this.stopsPlaces = stopsPlaces ?? const [];
+}
+
+
+
+enum RideRequestStatus {
+  initial,
+  searching,
+  driverFound,
+  noDriversAvailable,
+  error
+}
+
+class RideRequestProvider with ChangeNotifier {
+  final RideRequestService _rideRequestService;
+  final WebSocketService _webSocketService;
+  
+  RideRequestStatus _status = RideRequestStatus.initial;
+  String? _error;
+  Driver? _currentDriver;
+  int _currentDriverIndex = 0;
+  List<Driver> _availableDrivers = [];
+  Timer? _driverTimer;
+
+  RideRequestStatus get status => _status;
+  String? get error => _error;
+  Driver? get currentDriver => _currentDriver;
+
+  RideRequestProvider(String authToken)
+      : _rideRequestService = RideRequestService(authToken),
+        _webSocketService = WebSocketService(authToken) {
+    _setupWebSocketCallbacks();
+  }
+
+  void _setupWebSocketCallbacks() {
+    _webSocketService.onDriverResponse = (data) {
+      if (data['status'] == 'accepted') {
+        _status = RideRequestStatus.driverFound;
+        _currentDriver = _availableDrivers.firstWhere(
+          (d) => d.id == data['driver_id']
+        );
+        _driverTimer?.cancel();
+        notifyListeners();
+      }
+    };
+
+    _webSocketService.onError = (error) {
+      _error = error;
+      _status = RideRequestStatus.error;
+      notifyListeners();
+    };
+  }
+
+  Future<void> sendRideRequest(
+    RequestRide requestRide,
+    List<Driver> drivers,
+    String passengerId,
+  ) async {
+    try {
+      _status = RideRequestStatus.searching;
+      _availableDrivers = drivers;
+      _currentDriverIndex = 0;
+      notifyListeners();
+
+      // Connect to WebSocket
+      _webSocketService.connect(passengerId);
+
+      // Send initial request
+      await _sendToNextDriver(requestRide, passengerId);
+    } catch (e) {
+      _error = e.toString();
+      _status = RideRequestStatus.error;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _sendToNextDriver(RequestRide requestRide, String passengerId) async {
+    if (_currentDriverIndex >= _availableDrivers.length) {
+      _status = RideRequestStatus.noDriversAvailable;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      // Send request to current driver
+      await _rideRequestService.sendRideRequest(
+        requestRide,
+        [_availableDrivers[_currentDriverIndex]],
+        passengerId,
+      );
+
+      // Set timer for next driver
+      _driverTimer?.cancel();
+      _driverTimer = Timer(Duration(seconds: 20), () {
+        _currentDriverIndex++;
+        _sendToNextDriver(requestRide, passengerId);
+      });
+    } catch (e) {
+      _error = e.toString();
+      _status = RideRequestStatus.error;
+      notifyListeners();
+    }
+  }
+
+  void cancelRequest() {
+    _driverTimer?.cancel();
+    _webSocketService.disconnect();
+    _status = RideRequestStatus.initial;
+    _currentDriver = null;
+    _currentDriverIndex = 0;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _driverTimer?.cancel();
+    _webSocketService.disconnect();
+    super.dispose();
+  }
+}

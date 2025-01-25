@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/compont/Map/routeMap.dart';
 import 'package:ride_app/compont/tripDetails.dart';
+import 'package:ride_app/driver.dart';
 
 // ignore: must_be_immutable
 class Yourtrip extends StatefulWidget {
@@ -24,6 +26,7 @@ class _YourtripState extends State<Yourtrip> {
   double? duration;
   List<LatLng>? routePoints;
   bool isLoading = false;
+  late List<Driver> drivers;
 
   // Key to force RouteMap rebuild when places change
   Key _mapKey = UniqueKey();
@@ -55,15 +58,37 @@ class _YourtripState extends State<Yourtrip> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Use a Future method inside initState
+    _loadDrivers();
+  }
+
+  Future<void> _loadDrivers() async {
+    isLoading = true;
+    final fetchedDrivers =
+        await ApiService().getDriverAround(widget.pickupPlace!);
+    setState(() {
+      drivers = fetchedDrivers;
+      debugPrint("drivers: ${drivers.length}");
+    });
+    isLoading = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         // Use key to force rebuild when places change
-        if (widget.pickupPlace != null && widget.destinationPlace != null)
+
+        if (widget.pickupPlace != null &&
+            widget.destinationPlace != null &&
+            !isLoading)
           RouteMap(
             key: _mapKey,
-          startPlace: widget.pickupPlace!,
-          endPlace: widget.destinationPlace!,
+            availableDriver: drivers,
+            startPlace: widget.pickupPlace!,
+            endPlace: widget.destinationPlace!,
             onRouteCalculated: (dist, dur, points) {
               setState(() {
                 distance = dist;

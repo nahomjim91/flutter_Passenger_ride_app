@@ -52,12 +52,12 @@ class _CarSelectionWidgetState extends State<CarSelectionWidget> {
     ),
     CarOption(
       image: 'assets/images/premium.png',
-      typeService: 'Premium',
+      typeService: 'Luxury',
       price: 210,
     ),
     CarOption(
       image: 'assets/images/family.png',
-      typeService: 'family',
+      typeService: 'Family',
       price: 250,
     ),
   ];
@@ -76,7 +76,8 @@ class _CarSelectionWidgetState extends State<CarSelectionWidget> {
               child: DetailedCarView(
                 car: cars[index],
                 onTap: widget.whichCar,
-                isSelected: widget.currntCarType == cars[index].typeService,
+                isSelected: widget.currntCarType.toLowerCase() ==
+                    cars[index].typeService.toLowerCase(),
               ),
             );
           },
@@ -94,7 +95,8 @@ class _CarSelectionWidgetState extends State<CarSelectionWidget> {
               image: cars[index].image,
               typeService: cars[index].typeService,
               price: cars[index].price,
-              isSelected: widget.currntCarType == cars[index].typeService,
+              isSelected: widget.currntCarType.toLowerCase() ==
+                  cars[index].typeService.toLowerCase(),
             );
           },
         ),
@@ -122,7 +124,7 @@ class CarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap(typeService), // Fixed the onTap handler
+      onTap: () => onTap(typeService.toLowerCase()), // Fixed the onTap handler
       child: Container(
         width: 120,
         margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -186,7 +188,7 @@ class DetailedCarView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap(car.typeService),
+      onTap: () => onTap(car.typeService.toLowerCase()),
       child: Container(
         width: MediaQuery.of(context).size.width - 2,
         padding: const EdgeInsets.all(16),

@@ -1,0 +1,47 @@
+// lib/services/ride_request_service.dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:ride_app/driver.dart';
+import 'package:ride_app/request_ride.dart';
+
+
+class RideRequestService {
+  final String baseUrl = 'http://127.0.0.1:8000';
+  final String authToken;
+
+  RideRequestService(this.authToken);
+
+  Future<Map<String, dynamic>> sendRideRequest(
+    RequestRide requestRide,
+    List<Driver> availableDrivers,
+    String passengerId,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/ride-requests'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: jsonEncode({
+          'passenger_id': passengerId,
+          'pickup_place': requestRide.pickupPlace.toJSON(),
+          'destination_place': requestRide.destinationPlace.toJSON(),
+          'stops_places': requestRide.stopsPlaces?.map((p) => p.toJSON()).toList() ?? [],
+          'instructions': requestRide.instructions,
+          'payment_method': requestRide.paymentMethod,
+          'car_type': requestRide.carType,
+          'available_drivers': availableDrivers.map((d) => d.id).toList(),
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to send ride request: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error sending ride request: $e');
+    }
+  }
+}

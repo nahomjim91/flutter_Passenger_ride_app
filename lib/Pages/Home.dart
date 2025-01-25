@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:ride_app/Auth/api_service.dart';
-import 'package:ride_app/Pages/EditProfilePage.dart';
 import 'package:ride_app/compont/drawer.dart';
 // import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/showModalUtilities.dart';

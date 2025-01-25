@@ -1,0 +1,72 @@
+// lib/services/websocket_service.dart
+import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+class WebSocketService {
+  WebSocketChannel? _channel;
+  bool _isConnected = false;
+  final String _baseUrl = 'YOUR_WEBSOCKET_URL'; // Your WebSocket server URL
+  final String _authToken;
+
+  Function(Map<String, dynamic>)? onDriverResponse;
+  Function(String)? onError;
+
+  WebSocketService(this._authToken);
+
+  bool get isConnected => _isConnected;
+
+  void connect(String passengerId) {
+    try {
+      _channel = WebSocketChannel.connect(
+        Uri.parse('$_baseUrl/passenger.$passengerId'),
+      );
+
+      _isConnected = true;
+
+      _channel?.stream.listen(
+        (message) {
+          _handleMessage(message);
+        },
+        onError: (error) {
+          _isConnected = false;
+          onError?.call(error.toString());
+          _reconnect(passengerId);
+        },
+        onDone: () {
+          _isConnected = false;
+          _reconnect(passengerId);
+        },
+      );
+    } catch (e) {
+      _isConnected = false;
+      onError?.call(e.toString());
+    }
+  }
+
+  void _handleMessage(dynamic message) {
+    try {
+      final data = jsonDecode(message);
+      
+      switch (data['event']) {
+        case 'driver.response':
+          onDriverResponse?.call(data['data']);
+          break;
+      }
+    } catch (e) {
+      onError?.call('Error processing message: $e');
+    }
+  }
+
+  void _reconnect(String passengerId) {
+    Future.delayed(Duration(seconds: 5), () {
+      if (!_isConnected) {
+        connect(passengerId);
+      }
+    });
+  }
+
+  void disconnect() {
+    _channel?.sink.close();
+    _isConnected = false;
+  }
+}

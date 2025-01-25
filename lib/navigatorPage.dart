@@ -5,6 +5,7 @@ import 'package:ride_app/Pages/Home.dart';
 import 'package:ride_app/Pages/profilePage.dart';
 import 'package:ride_app/Pages/discountPage.dart';
 import 'package:ride_app/Pages/paymentPage.dart';
+import 'package:ride_app/Pages/savePlacesPage.dart';
 import 'package:ride_app/passenger.dart';
 
 class NavigatorPage extends StatelessWidget {
@@ -42,6 +43,9 @@ class NavigatorPage extends StatelessWidget {
                       return MaterialPageRoute(
                         builder: (_) => EditProfilePage(),
                       );
+                    case 'savedPlaces':
+                      return MaterialPageRoute(
+                          builder: (_) => const SavePlaces());
                     default:
                       return MaterialPageRoute(
                         builder: (_) => const Center(

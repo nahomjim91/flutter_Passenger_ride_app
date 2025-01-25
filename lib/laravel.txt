@@ -1,0 +1,1196 @@
+hello i wounder if you could help me i have this project Ride-hilling app in flutter and backend with laravel mysql. for now i were building the passenger side app different from the driver app.  and i got this want to implement it " i want to send ride request to driver from passenger and we sending request this are the data want to send to the backend there is RequestRide data that have this class class RequestRide {    Place pickupPlace, destinationPlace;    String instructions;    String paymentMethod;    String carType;    List? stopsPlaces;      RequestRide(        {required this.pickupPlace,        required this.destinationPlace,        required this.paymentMethod,        required this.carType,        required this.instructions,        List? stopsPlaces})        : this.stopsPlaces = stopsPlaces ?? const [];  }  and the Place class have this  class Place {    final String displayName;    final double latitude;    final double longitude;      Place({      required this.displayName,      required this.latitude,      required this.longitude,    });      factory Place.fromJson(Map json) {      return Place(        displayName: json['display_name'] ?? '',        latitude: double.parse(json['lat'] ?? '0'),        longitude: double.parse(json['lon'] ?? '0'),      );    }      Map toJSON() {      return {        'display_name': displayName,        'latitude': latitude.toString(),        'longitude': longitude.toString(),      };    }  }   driveId that gonna requested , passenger Id //current passenger , so this are i want to send to driver request and the request per drive stay for 30s then it goes to the next driver and i have collection of the diverAround the passenger no need to implemented i all ready handle it." so now i want to help me with that for both flutter request and backend for now just handle the passenger side in driver let use just can answer through url stuff just don't worry also use webhook or websockt. and in laravel i have Passenger and Driver model
+I'll help you implement the ride request system. Let's break this down into parts:
+
+First, let's create the Laravel backend endpoints and logic
+Then, we'll implement the Flutter side for sending requests
+Here's the implementation:
+
+First, let's create a RideRequest model in Laravel:
+php
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class RideRequest extends Model
+{
+    protected $fillable = [
+        'passenger_id',
+        'driver_id',
+        'pickup_name',
+        'pickup_latitude',
+        'pickup_longitude',
+        'destination_name',
+        'destination_latitude',
+        'destination_longitude',
+        'instructions',
+        'payment_method',
+        'car_type',
+        'status',
+        'expires_at'
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime'
+    ];
+
+    public function passenger()
+    {
+        return $this->belongsTo(Passenger::class);
+    }
+
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
+}
+Create a migration for the ride_requests table:
+php
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateRideRequestsTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('ride_requests', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('passenger_id')->constrained('passengers');
+            $table->foreignId('driver_id')->constrained('drivers');
+            $table->string('pickup_name');
+            $table->double('pickup_latitude', 10, 8);
+            $table->double('pickup_longitude', 11, 8);
+            $table->string('destination_name');
+            $table->double('destination_latitude', 10, 8);
+            $table->double('destination_longitude', 11, 8);
+            $table->text('instructions')->nullable();
+            $table->string('payment_method');
+            $table->string('car_type');
+            $table->enum('status', ['pending', 'accepted', 'rejected', 'expired'])->default('pending');
+            $table->timestamp('expires_at');
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('ride_requests');
+    }
+}
+Create a RideRequestController:
+php
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\RideRequest;
+use App\Models\Driver;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+
+class RideRequestController extends Controller
+{
+    public function store(Request $request)
+    {
+        $request->validate([
+            'pickup_place' => 'required',
+            'destination_place' => 'required',
+            'instructions' => 'nullable|string',
+            'payment_method' => 'required|string',
+            'car_type' => 'required|string',
+            'driver_id' => 'required|exists:drivers,id'
+        ]);
+
+        $rideRequest = RideRequest::create([
+            'passenger_id' => auth()->id(),
+            'driver_id' => $request->driver_id,
+            'pickup_name' => $request->pickup_place['display_name'],
+            'pickup_latitude' => $request->pickup_place['latitude'],
+            'pickup_longitude' => $request->pickup_place['longitude'],
+            'destination_name' => $request->destination_place['display_name'],
+            'destination_latitude' => $request->destination_place['latitude'],
+            'destination_longitude' => $request->destination_place['longitude'],
+            'instructions' => $request->instructions,
+            'payment_method' => $request->payment_method,
+            'car_type' => $request->car_type,
+            'expires_at' => Carbon::now()->addSeconds(30)
+        ]);
+
+        // Trigger WebSocket event to notify driver
+        event(new RideRequestCreated($rideRequest));
+
+        return response()->json([
+            'message' => 'Ride request sent successfully',
+            'ride_request' => $rideRequest
+        ]);
+    }
+}
+Create a RideRequestCreated event:
+php
+
+<?php
+
+namespace App\Events;
+
+use App\Models\RideRequest;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class RideRequestCreated implements ShouldBroadcast
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    public $rideRequest;
+
+    public function __construct(RideRequest $rideRequest)
+    {
+        $this->rideRequest = $rideRequest;
+    }
+
+    public function broadcastOn()
+    {
+        return new Channel('driver.' . $this->rideRequest->driver_id);
+    }
+}
+Now for the Flutter implementation:
+
+Create a RideRequestService:
+class RideRequestService {
+  final String baseUrl = 'YOUR_API_BASE_URL';
+  
+  Future<void> sendRideRequest(RequestRide requestRide, int driverId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/ride-requests'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $YOUR_AUTH_TOKEN',
+        },
+        body: jsonEncode({
+          'pickup_place': requestRide.pickupPlace.toJSON(),
+          'destination_place': requestRide.destinationPlace.toJSON(),
+          'instructions': requestRide.instructions,
+          'payment_method': requestRide.paymentMethod,
+          'car_type': requestRide.carType,
+          'driver_id': driverId,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to send ride request');
+      }
+    } catch (e) {
+      throw Exception('Error sending ride request: $e');
+    }
+  }
+}
+Create a RideRequestBloc to manage the state:
+class RideRequestBloc extends Cubit<RideRequestState> {
+  final RideRequestService _rideRequestService;
+  final List<int> _driversQueue;
+  Timer? _requestTimer;
+  int _currentDriverIndex = 0;
+
+  RideRequestBloc(this._rideRequestService) : super(RideRequestInitial());
+
+  void startRideRequest(RequestRide requestRide, List<int> nearbyDriverIds) {
+    _driversQueue = List.from(nearbyDriverIds);
+    _currentDriverIndex = 0;
+    _sendRequestToNextDriver(requestRide);
+  }
+
+  Future<void> _sendRequestToNextDriver(RequestRide requestRide) async {
+    if (_currentDriverIndex >= _driversQueue.length) {
+      emit(RideRequestFailed('No available drivers'));
+      return;
+    }
+
+    int currentDriverId = _driversQueue[_currentDriverIndex];
+    
+    try {
+      await _rideRequestService.sendRideRequest(requestRide, currentDriverId);
+      emit(RideRequestSent(currentDriverId));
+      
+      _requestTimer?.cancel();
+      _requestTimer = Timer(Duration(seconds: 30), () {
+        _currentDriverIndex++;
+        _sendRequestToNextDriver(requestRide);
+      });
+    } catch (e) {
+      emit(RideRequestFailed(e.toString()));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _requestTimer?.cancel();
+    return super.close();
+  }
+}
+Create the state classes:
+abstract class RideRequestState {}
+
+class RideRequestInitial extends RideRequestState {}
+
+class RideRequestSent extends RideRequestState {
+  final int driverId;
+  RideRequestSent(this.driverId);
+}
+
+class RideRequestFailed extends RideRequestState {
+  final String error;
+  RideRequestFailed(this.error);
+}
+To use this implementation, you would:
+
+Add the routes in Laravel's routes/api.php:
+php
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/ride-requests', [RideRequestController::class, 'store']);
+});
+In your Flutter app, use the RideRequestBloc:
+final rideRequestBloc = RideRequestBloc(RideRequestService());
+
+// When sending a request:
+rideRequestBloc.startRideRequest(requestRide, nearbyDriverIds);
+
+// Listen to the state changes:
+BlocBuilder<RideRequestBloc, RideRequestState>(
+  builder: (context, state) {
+    if (state is RideRequestSent) {
+      return Text('Request sent to driver ${state.driverId}');
+    } else if (state is RideRequestFailed) {
+      return Text('Request failed: ${state.error}');
+    }
+    return CircularProgressIndicator();
+  },
+)
+Would you like me to explain or break down any part of this code?
+
+will you provide me the artisan commands for laravel to create also request receive List<Place>? stopsPlaces; too will you add it
+
+
+Claude-3.5-Sonnet
+
+Poe
+I'll provide the artisan commands and update the code to include stopsPlaces.
+
+First, let's run these artisan commands:
+
+bash
+
+# Create the migration
+php artisan make:migration create_ride_requests_table
+
+# Create the model
+php artisan make:model RideRequest
+
+# Create the controller
+php artisan make:controller RideRequestController
+
+# Create the event
+php artisan make:event RideRequestCreated
+
+# Create request validation
+php artisan make:request StoreRideRequestRequest
+Now let's update the migration to include stops:
+
+php
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateRideRequestsTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('ride_requests', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('passenger_id')->constrained('passengers');
+            $table->foreignId('driver_id')->constrained('drivers');
+            $table->string('pickup_name');
+            $table->double('pickup_latitude', 10, 8);
+            $table->double('pickup_longitude', 11, 8);
+            $table->string('destination_name');
+            $table->double('destination_latitude', 10, 8);
+            $table->double('destination_longitude', 11, 8);
+            $table->json('stops')->nullable(); // Added stops as JSON
+            $table->text('instructions')->nullable();
+            $table->string('payment_method');
+            $table->string('car_type');
+            $table->enum('status', ['pending', 'accepted', 'rejected', 'expired'])->default('pending');
+            $table->timestamp('expires_at');
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('ride_requests');
+    }
+}
+Update the RideRequest model:
+
+php
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class RideRequest extends Model
+{
+    protected $fillable = [
+        'passenger_id',
+        'driver_id',
+        'pickup_name',
+        'pickup_latitude',
+        'pickup_longitude',
+        'destination_name',
+        'destination_latitude',
+        'destination_longitude',
+        'stops',
+        'instructions',
+        'payment_method',
+        'car_type',
+        'status',
+        'expires_at'
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'stops' => 'array'
+    ];
+
+    public function passenger()
+    {
+        return $this->belongsTo(Passenger::class);
+    }
+
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
+}
+Create the StoreRideRequestRequest for validation:
+
+php
+
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreRideRequestRequest extends FormRequest
+{
+    public function authorize()
+    {
+        return true;
+    }
+
+    public function rules()
+    {
+        return [
+            'pickup_place' => 'required|array',
+            'pickup_place.display_name' => 'required|string',
+            'pickup_place.latitude' => 'required|numeric',
+            'pickup_place.longitude' => 'required|numeric',
+            
+            'destination_place' => 'required|array',
+            'destination_place.display_name' => 'required|string',
+            'destination_place.latitude' => 'required|numeric',
+            'destination_place.longitude' => 'required|numeric',
+            
+            'stops_places' => 'nullable|array',
+            'stops_places.*.display_name' => 'required|string',
+            'stops_places.*.latitude' => 'required|numeric',
+            'stops_places.*.longitude' => 'required|numeric',
+            
+            'instructions' => 'nullable|string',
+            'payment_method' => 'required|string',
+            'car_type' => 'required|string',
+            'driver_id' => 'required|exists:drivers,id'
+        ];
+    }
+}
+Update the RideRequestController:
+
+php
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\RideRequest;
+use App\Models\Driver;
+use App\Http\Requests\StoreRideRequestRequest;
+use Carbon\Carbon;
+
+class RideRequestController extends Controller
+{
+    public function store(StoreRideRequestRequest $request)
+    {
+        $rideRequest = RideRequest::create([
+            'passenger_id' => auth()->id(),
+            'driver_id' => $request->driver_id,
+            'pickup_name' => $request->pickup_place['display_name'],
+            'pickup_latitude' => $request->pickup_place['latitude'],
+            'pickup_longitude' => $request->pickup_place['longitude'],
+            'destination_name' => $request->destination_place['display_name'],
+            'destination_latitude' => $request->destination_place['latitude'],
+            'destination_longitude' => $request->destination_place['longitude'],
+            'stops' => $request->stops_places ?? [], // Store stops as JSON
+            'instructions' => $request->instructions,
+            'payment_method' => $request->payment_method,
+            'car_type' => $request->car_type,
+            'expires_at' => Carbon::now()->addSeconds(30)
+        ]);
+
+        // Trigger WebSocket event to notify driver
+        event(new RideRequestCreated($rideRequest));
+
+        return response()->json([
+            'message' => 'Ride request sent successfully',
+            'ride_request' => $rideRequest
+        ]);
+    }
+}
+Update the Flutter RideRequestService:
+
+class RideRequestService {
+  final String baseUrl = 'YOUR_API_BASE_URL';
+  
+  Future<void> sendRideRequest(RequestRide requestRide, int driverId) async {
+    try {
+      // Convert stops places to JSON
+      final List<Map<String, dynamic>> stopsJson = requestRide.stopsPlaces
+          ?.map((place) => place.toJSON())
+          .toList() ?? [];
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/ride-requests'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $YOUR_AUTH_TOKEN',
+        },
+        body: jsonEncode({
+          'pickup_place': requestRide.pickupPlace.toJSON(),
+          'destination_place': requestRide.destinationPlace.toJSON(),
+          'stops_places': stopsJson,
+          'instructions': requestRide.instructions,
+          'payment_method': requestRide.paymentMethod,
+          'car_type': requestRide.carType,
+          'driver_id': driverId,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to send ride request');
+      }
+    } catch (e) {
+      throw Exception('Error sending ride request: $e');
+    }
+  }
+}
+Now you can create a new ride request with stops. For example:
+
+final request = RequestRide(
+  pickupPlace: Place(
+    displayName: "My Location",
+    latitude: 1.234567,
+    longitude: 2.345678
+  ),
+  destinationPlace: Place(
+    displayName: "Destination",
+    latitude: 3.456789,
+    longitude: 4.567890
+  ),
+  stopsPlaces: [
+    Place(
+      displayName: "Stop 1",
+      latitude: 5.678901,
+      longitude: 6.789012
+    ),
+    Place(
+      displayName: "Stop 2",
+      latitude: 7.890123,
+      longitude: 8.901234
+    )
+  ],
+  instructions: "Please wait at the main entrance",
+  paymentMethod: "cash",
+  carType: "standard"
+);
+Would you like me to explain or break down any part of this code?
+
+nice but if i want to add timer like if the driver dose accept in 20s then goes to next driver Id how can i acheive that
+
+
+Claude-3.5-Sonnet
+
+Poe
+I'll show you how to implement the timer functionality both on the Laravel backend and Flutter frontend. We'll use Laravel's job scheduling for cleanup and WebSocket events to handle the driver switching.
+
+First, create a new Job in Laravel:
+bash
+
+php artisan make:job ProcessNextDriver
+Update the RideRequest model to add a new method:
+php
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class RideRequest extends Model
+{
+    // ... previous code ...
+
+    protected $appends = ['is_expired'];
+
+    public function getIsExpiredAttribute()
+    {
+        return $this->expires_at->isPast();
+    }
+
+    public function moveToNextDriver($nextDriverId)
+    {
+        $this->update([
+            'driver_id' => $nextDriverId,
+            'expires_at' => now()->addSeconds(20),
+            'status' => 'pending'
+        ]);
+    }
+}
+Create the ProcessNextDriver Job:
+php
+
+<?php
+
+namespace App\Jobs;
+
+use App\Models\RideRequest;
+use App\Events\RideRequestCreated;
+use App\Events\NoDriversAvailable;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+
+class ProcessNextDriver implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    private $rideRequest;
+    private $availableDrivers;
+    private $currentDriverIndex;
+
+    public function __construct(RideRequest $rideRequest, array $availableDrivers, int $currentDriverIndex)
+    {
+        $this->rideRequest = $rideRequest;
+        $this->availableDrivers = $availableDrivers;
+        $this->currentDriverIndex = $currentDriverIndex;
+    }
+
+    public function handle()
+    {
+        // Check if request is already accepted
+        if ($this->rideRequest->status === 'accepted') {
+            return;
+        }
+
+        $nextDriverIndex = $this->currentDriverIndex + 1;
+
+        // Check if we have more drivers
+        if (isset($this->availableDrivers[$nextDriverIndex])) {
+            $nextDriverId = $this->availableDrivers[$nextDriverIndex];
+            
+            // Update ride request with next driver
+            $this->rideRequest->moveToNextDriver($nextDriverId);
+            
+            // Broadcast to new driver
+            event(new RideRequestCreated($this->rideRequest));
+            
+            // Schedule next driver check
+            ProcessNextDriver::dispatch(
+                $this->rideRequest,
+                $this->availableDrivers,
+                $nextDriverIndex
+            )->delay(now()->addSeconds(20));
+        } else {
+            // No more drivers available
+            $this->rideRequest->update(['status' => 'expired']);
+            event(new NoDriversAvailable($this->rideRequest));
+        }
+    }
+}
+Create a new Event for when no drivers are available:
+bash
+
+php artisan make:event NoDriversAvailable
+php
+
+<?php
+
+namespace App\Events;
+
+use App\Models\RideRequest;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class NoDriversAvailable implements ShouldBroadcast
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    public $rideRequest;
+
+    public function __construct(RideRequest $rideRequest)
+    {
+        $this->rideRequest = $rideRequest;
+    }
+
+    public function broadcastOn()
+    {
+        return new Channel('passenger.' . $this->rideRequest->passenger_id);
+    }
+}
+Update the RideRequestController:
+php
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\RideRequest;
+use App\Http\Requests\StoreRideRequestRequest;
+use App\Events\RideRequestCreated;
+use App\Jobs\ProcessNextDriver;
+use Carbon\Carbon;
+
+class RideRequestController extends Controller
+{
+    public function store(StoreRideRequestRequest $request)
+    {
+        $rideRequest = RideRequest::create([
+            'passenger_id' => auth()->id(),
+            'driver_id' => $request->available_drivers[0], // First driver
+            'pickup_name' => $request->pickup_place['display_name'],
+            'pickup_latitude' => $request->pickup_place['latitude'],
+            'pickup_longitude' => $request->pickup_place['longitude'],
+            'destination_name' => $request->destination_place['display_name'],
+            'destination_latitude' => $request->destination_place['latitude'],
+            'destination_longitude' => $request->destination_place['longitude'],
+            'stops' => $request->stops_places ?? [],
+            'instructions' => $request->instructions,
+            'payment_method' => $request->payment_method,
+            'car_type' => $request->car_type,
+            'expires_at' => Carbon::now()->addSeconds(20)
+        ]);
+
+        // Trigger WebSocket event to notify first driver
+        event(new RideRequestCreated($rideRequest));
+
+        // Schedule job to check and move to next driver after 20 seconds
+        ProcessNextDriver::dispatch(
+            $rideRequest,
+            $request->available_drivers,
+            0
+        )->delay(now()->addSeconds(20));
+
+        return response()->json([
+            'message' => 'Ride request sent successfully',
+            'ride_request' => $rideRequest
+        ]);
+    }
+
+    public function accept(RideRequest $rideRequest)
+    {
+        if ($rideRequest->is_expired) {
+            return response()->json([
+                'message' => 'Ride request has expired'
+            ], 400);
+        }
+
+        $rideRequest->update([
+            'status' => 'accepted'
+        ]);
+
+        // Broadcast acceptance to passenger
+        event(new RideRequestAccepted($rideRequest));
+
+        return response()->json([
+            'message' => 'Ride request accepted successfully'
+        ]);
+    }
+}
+Update the Flutter implementation to handle the WebSocket events:
+class RideRequestService {
+  final String baseUrl = 'YOUR_API_BASE_URL';
+  late WebSocketChannel passengerChannel;
+  
+  void initializeWebSocket(int passengerId) {
+    passengerChannel = WebSocketChannel.connect(
+      Uri.parse('wss://your-websocket-url/passenger.$passengerId'),
+    );
+  }
+
+  Future<void> sendRideRequest(RequestRide requestRide, List<int> availableDrivers) async {
+    try {
+      final List<Map<String, dynamic>> stopsJson = requestRide.stopsPlaces
+          ?.map((place) => place.toJSON())
+          .toList() ?? [];
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/ride-requests'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $YOUR_AUTH_TOKEN',
+        },
+        body: jsonEncode({
+          'pickup_place': requestRide.pickupPlace.toJSON(),
+          'destination_place': requestRide.destinationPlace.toJSON(),
+          'stops_places': stopsJson,
+          'instructions': requestRide.instructions,
+          'payment_method': requestRide.paymentMethod,
+          'car_type': requestRide.carType,
+          'available_drivers': availableDrivers,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to send ride request');
+      }
+    } catch (e) {
+      throw Exception('Error sending ride request: $e');
+    }
+  }
+}
+
+class RideRequestBloc extends Cubit<RideRequestState> {
+  final RideRequestService _rideRequestService;
+
+  RideRequestBloc(this._rideRequestService) : super(RideRequestInitial()) {
+    // Listen to WebSocket events
+    _rideRequestService.passengerChannel.stream.listen(
+      (event) {
+        final data = jsonDecode(event);
+        if (data['event'] == 'NoDriversAvailable') {
+          emit(RideRequestFailed('No drivers available'));
+        }
+      },
+      onError: (error) {
+        emit(RideRequestFailed(error.toString()));
+      },
+    );
+  }
+
+  Future<void> sendRideRequest(RequestRide requestRide, List<int> nearbyDriverIds) async {
+    try {
+      await _rideRequestService.sendRideRequest(requestRide, nearbyDriverIds);
+      emit(RideRequestSent(nearbyDriverIds[0]));
+    } catch (e) {
+      emit(RideRequestFailed(e.toString()));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _rideRequestService.passengerChannel.sink.close();
+    return super.close();
+  }
+}
+To use this implementation:
+
+In your Laravel routes file (routes/api.php):
+php
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/ride-requests', [RideRequestController::class, 'store']);
+    Route::post('/ride-requests/{rideRequest}/accept', [RideRequestController::class, 'accept']);
+});
+In your Flutter app:
+final rideRequestService = RideRequestService();
+final rideRequestBloc = RideRequestBloc(rideRequestService);
+
+// Initialize WebSocket connection
+rideRequestService.initializeWebSocket(currentPassengerId);
+
+// When sending a request:
+rideRequestBloc.sendRideRequest(requestRide, nearbyDriverIds);
+
+// Listen to the state changes:
+BlocBuilder<RideRequestBloc, RideRequestState>(
+  builder: (context, state) {
+    if (state is RideRequestSent) {
+      return Text('Waiting for driver ${state.driverId} to accept...');
+    } else if (state is RideRequestFailed) {
+      return Text('Request failed: ${state.error}');
+    }
+    return CircularProgressIndicator();
+  },
+)
+This implementation will:
+
+Send the request to the first driver
+Wait 20 seconds for acceptance
+If no acceptance, automatically move to the next driver
+Repeat until a driver accepts or no drivers are left
+Notify the passenger through WebSocket events about the status
+Would you like me to explain or break down any part of this code?
+
+how can i add websocket channel to my flutter project
+
+
+Claude-3.5-Sonnet
+
+Poe
+
+I'll show you how to set up WebSocket channels in your Flutter project using the web_socket_channel package. I'll also show how to integrate it with Laravel using Laravel WebSockets or Pusher.
+
+First, add the WebSocket package to your pubspec.yaml:
+yaml
+
+dependencies:
+  web_socket_channel: ^2.4.0
+  provider: ^6.0.5  # For state management
+Create a WebSocket service class:
+// lib/services/websocket_service.dart
+import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/status.dart' as status;
+
+class WebSocketService {
+  WebSocketChannel? _channel;
+  bool _isConnected = false;
+  final String _baseUrl = 'YOUR_WEBSOCKET_URL'; // e.g., 'ws://your-domain.com/ws'
+  final String _authToken;
+
+  // Callback functions
+  Function(dynamic)? onRideRequestUpdated;
+  Function(dynamic)? onDriverResponse;
+  Function(dynamic)? onError;
+
+  WebSocketService(this._authToken);
+
+  bool get isConnected => _isConnected;
+
+  void connect(int passengerId) {
+    try {
+      _channel = WebSocketChannel.connect(
+        Uri.parse('$_baseUrl/app/YOUR_PUSHER_APP_KEY?protocol=7&client=js&version=7.0.3&flash=false'),
+      );
+
+      // Send authentication message
+      _channel?.sink.add(jsonEncode({
+        'event': 'pusher:subscribe',
+        'data': {
+          'auth': _authToken,
+          'channel': 'passenger.$passengerId'
+        }
+      }));
+
+      _isConnected = true;
+
+      // Listen to messages
+      _channel?.stream.listen(
+        (message) {
+          _handleMessage(message);
+        },
+        onError: (error) {
+          _isConnected = false;
+          onError?.call(error);
+          _reconnect(passengerId);
+        },
+        onDone: () {
+          _isConnected = false;
+          _reconnect(passengerId);
+        },
+      );
+    } catch (e) {
+      _isConnected = false;
+      onError?.call(e);
+    }
+  }
+
+  void _handleMessage(dynamic message) {
+    try {
+      final data = jsonDecode(message);
+      
+      switch (data['event']) {
+        case 'ride.request.updated':
+          onRideRequestUpdated?.call(data['data']);
+          break;
+        case 'driver.response':
+          onDriverResponse?.call(data['data']);
+          break;
+        case 'pusher:connection_established':
+          print('WebSocket Connected');
+          break;
+        default:
+          print('Unhandled event: ${data['event']}');
+      }
+    } catch (e) {
+      onError?.call('Error processing message: $e');
+    }
+  }
+
+  void _reconnect(int passengerId) {
+    Future.delayed(Duration(seconds: 5), () {
+      if (!_isConnected) {
+        connect(passengerId);
+      }
+    });
+  }
+
+  void disconnect() {
+    _channel?.sink.close(status.goingAway);
+    _isConnected = false;
+  }
+}
+Create a WebSocket Provider for state management:
+// lib/providers/websocket_provider.dart
+import 'package:flutter/foundation.dart';
+import '../services/websocket_service.dart';
+
+class WebSocketProvider with ChangeNotifier {
+  late WebSocketService _webSocketService;
+  bool _isConnected = false;
+  Map<String, dynamic>? _lastRideRequest;
+  String? _error;
+
+  bool get isConnected => _isConnected;
+  Map<String, dynamic>? get lastRideRequest => _lastRideRequest;
+  String? get error => _error;
+
+  WebSocketProvider(String authToken) {
+    _webSocketService = WebSocketService(authToken);
+    _setupWebSocketCallbacks();
+  }
+
+  void _setupWebSocketCallbacks() {
+    _webSocketService.onRideRequestUpdated = (data) {
+      _lastRideRequest = data;
+      notifyListeners();
+    };
+
+    _webSocketService.onDriverResponse = (data) {
+      // Handle driver response
+      notifyListeners();
+    };
+
+    _webSocketService.onError = (error) {
+      _error = error.toString();
+      _isConnected = false;
+      notifyListeners();
+    };
+  }
+
+  void connect(int passengerId) {
+    _webSocketService.connect(passengerId);
+    _isConnected = true;
+    notifyListeners();
+  }
+
+  void disconnect() {
+    _webSocketService.disconnect();
+    _isConnected = false;
+    notifyListeners();
+  }
+}
+Set up the main app with Provider:
+// lib/main.dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/websocket_provider.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => WebSocketProvider('YOUR_AUTH_TOKEN'),
+        ),
+      ],
+      child: MaterialApp(
+        // Your app configuration
+      ),
+    );
+  }
+}
+Use the WebSocket in your ride request screen:
+// lib/screens/ride_request_screen.dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/websocket_provider.dart';
+
+class RideRequestScreen extends StatefulWidget {
+  @override
+  _RideRequestScreenState createState() => _RideRequestScreenState();
+}
+
+class _RideRequestScreenState extends State<RideRequestScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Connect to WebSocket when screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final wsProvider = context.read<WebSocketProvider>();
+      wsProvider.connect(currentPassengerId); // Replace with actual passenger ID
+    });
+  }
+
+  @override
+  void dispose() {
+    // Disconnect when screen closes
+    context.read<WebSocketProvider>().disconnect();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Ride Request')),
+      body: Consumer<WebSocketProvider>(
+        builder: (context, wsProvider, child) {
+          if (!wsProvider.isConnected) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Connecting to service...'),
+                  if (wsProvider.error != null)
+                    Text('Error: ${wsProvider.error}',
+                        style: TextStyle(color: Colors.red)),
+                ],
+              ),
+            );
+          }
+
+          // Show ride request status
+          return Column(
+            children: [
+              if (wsProvider.lastRideRequest != null)
+                RideRequestStatus(request: wsProvider.lastRideRequest!),
+              // Your other UI elements
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RideRequestStatus extends StatelessWidget {
+  final Map<String, dynamic> request;
+
+  const RideRequestStatus({Key? key, required this.request}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.all(16),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Status: ${request['status']}'),
+            if (request['driver'] != null) ...[
+              SizedBox(height: 8),
+              Text('Driver: ${request['driver']['name']}'),
+            ],
+            // Add more request details as needed
+          ],
+        ),
+      ),
+    );
+  }
+}
+For Laravel backend, install Laravel WebSockets:
+bash
+
+composer require beyondcode/laravel-websockets
+Publish the config:
+bash
+
+php artisan vendor:publish --provider="BeyondCode\LaravelWebSockets\WebSocketsServiceProvider" --tag="config"
+Update your .env file:
+env
+
+BROADCAST_DRIVER=pusher
+PUSHER_APP_ID=your_app_id
+PUSHER_APP_KEY=your_app_key
+PUSHER_APP_SECRET=your_app_secret
+PUSHER_HOST=your_domain
+PUSHER_PORT=6001
+PUSHER_SCHEME=http
+PUSHER_APP_CLUSTER=mt1
+Update your config/broadcasting.php:
+php
+
+'pusher' => [
+    'driver' => 'pusher',
+    'key' => env('PUSHER_APP_KEY'),
+    'secret' => env('PUSHER_APP_SECRET'),
+    'app_id' => env('PUSHER_APP_ID'),
+    'options' => [
+        'cluster' => env('PUSHER_APP_CLUSTER'),
+        'host' => env('PUSHER_HOST') ?: 'api-'.env('PUSHER_APP_CLUSTER','mt1').'.pusher.com',
+        'port' => env('PUSHER_PORT', 6001),
+        'scheme' => env('PUSHER_SCHEME', 'https'),
+        'encrypted' => true,
+        'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
+    ],
+],
+Start the WebSocket server:
+bash
+
+php artisan websockets:serve
+To use this in your existing ride request implementation:
+
+// In your RideRequestBloc
+void startRideRequest(RequestRide requestRide, List<int> nearbyDriverIds) {
+  final wsProvider = context.read<WebSocketProvider>();
+  
+  // Make sure WebSocket is connected
+  if (!wsProvider.isConnected) {
+    wsProvider.connect(currentPassengerId);
+  }
+  
+  // Send the ride request
+  sendRideRequest(requestRide, nearbyDriverIds);
+}
+This setup will:
+
+Maintain a WebSocket connection
+Automatically reconnect if disconnected
+Handle different types of messages
+Provide real-time updates about ride requests
+Manage the WebSocket state using Provider

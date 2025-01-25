@@ -1,0 +1,16 @@
+import 'package:pusher_client/pusher_client.dart';
+
+late PusherClient pusher;
+void initializePusher() {
+  pusher = PusherClient(
+    'abcd1234',
+    PusherOptions(cluster: 'mt1'),
+    enableLogging: true,
+  );
+
+  Channel channel = pusher.subscribe('ride-requests');
+  channel.bind('RideRequestSent', (event) {
+    print("Ride request: ${event.data}");
+    // Notify the driver with the ride request details
+  });
+}

@@ -169,4 +169,12 @@ class Place {
       longitude: double.parse(json['lon'] ?? '0'),
     );
   }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      'display_name': displayName,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
+  }
 }
