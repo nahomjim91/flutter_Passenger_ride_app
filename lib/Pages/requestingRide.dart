@@ -5,11 +5,13 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:ride_app/Auth/api_service.dart';
+import 'package:ride_app/Pages/RideAccepted.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/compont/Map/routeMap.dart';
 import 'package:ride_app/driver.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/request_ride.dart';
+// import 'package:ride_app/scrollablePages/accptedRideDetails.dart';
 import 'package:ride_app/scrollablePages/requestingRideDetail.dart';
 
 class RequestingRide extends StatefulWidget {
@@ -33,6 +35,9 @@ class _RequestingRideState extends State<RequestingRide> {
   int currentDriverIndex = 0;
   bool isLoading = false;
   bool isRequesting = false;
+  bool shouldShareLocation = false;
+
+  UniqueKey _mapKey = UniqueKey();
 
   // Server API endpoint
   final String serverUrl = 'http://127.0.0.1:8000/api';
@@ -109,6 +114,16 @@ class _RequestingRideState extends State<RequestingRide> {
             SnackBar(
                 content:
                     Text('Driver ${driver.first_name} accepted your request!')),
+          );
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => RideAccepted(
+                rideRequestId: rideRequestId,
+                requestRide: widget.rquestRide,
+                driver: currentDriver!,
+                shouldShareLocation: shouldShareLocation,
+              ),
+            ),
           );
           break; // Exit the loop if a driver accepts
         } else {
@@ -200,7 +215,7 @@ class _RequestingRideState extends State<RequestingRide> {
   /// Wait for driver response (polling every second for 5 seconds)
   Future<bool> _waitForDriverResponse(int rideRequestId) async {
     for (int i = 0; i < 5; i++) {
-      await Future.delayed(Duration(seconds: 1)); // Wait for 1 second
+      await Future.delayed(Duration(seconds: 2)); // Wait for 1 second
       try {
         final response = await http.get(
           Uri.parse('$serverUrl/ride-requests/$rideRequestId'),
@@ -225,12 +240,21 @@ class _RequestingRideState extends State<RequestingRide> {
   }
 
   /// Add a new stop to the ride and restart the request process
-  void _addingStops(Place newPlace) {
+  void addingStops(Place newPlace) {
     setState(() {
+      // Initialize stopsPlaces as an empty list if it is null
       widget.rquestRide.stopsPlaces ??= [];
-      widget.rquestRide.stopsPlaces!.add(newPlace);
+
+      // Ensure the list is modifiable by creating a new list if necessary
+      if (widget.rquestRide.stopsPlaces!.isEmpty) {
+        widget.rquestRide.stopsPlaces = [newPlace];
+      } else {
+        widget.rquestRide.stopsPlaces!.add(newPlace);
+      }
+
       _resetRouteData();
     });
+
     _sendRideRequest();
   }
 
@@ -245,6 +269,7 @@ class _RequestingRideState extends State<RequestingRide> {
 
   /// Reset route-related data
   void _resetRouteData() {
+    _mapKey = UniqueKey();
     distance = null;
     duration = null;
     routePoints = null;
@@ -262,7 +287,8 @@ class _RequestingRideState extends State<RequestingRide> {
       children: [
         if (!isLoading)
           RouteMap(
-            key: ValueKey(drivers.length), // Update key when drivers change
+            key:
+                _mapKey, //ValueKey(drivers.length), // Update key when drivers change
             availableDriver: drivers,
             currentDriver: currentDriver,
             startPlace: widget.rquestRide.pickupPlace,
@@ -279,8 +305,14 @@ class _RequestingRideState extends State<RequestingRide> {
             },
           ),
         RequestingRideDetails(
+          toggledShareLocation: () {
+            setState(() {
+              shouldShareLocation = !shouldShareLocation;
+            });
+          },
+          shouldShareLocation: shouldShareLocation,
           rquestRide: widget.rquestRide,
-          addingStops: _addingStops,
+          addingStops: addingStops,
           removedStops: _removeStops,
           sendRideRequest: _sendRideRequest,
         ),

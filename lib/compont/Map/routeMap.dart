@@ -60,47 +60,6 @@ class _RouteMapState extends State<RouteMap> {
     return LatLng(place.latitude, place.longitude);
   }
 
-  // Haversine formula for more accurate distance calculation
-  // double _calculateDistance(LatLng point1, LatLng point2) {
-  //   var lat1 = point1.latitude;
-  //   var lon1 = point1.longitude;
-  //   var lat2 = point2.latitude;
-  //   var lon2 = point2.longitude;
-
-  //   var R = 6371e3; // Earth's radius in meters
-  //   var phi1 = lat1 * pi / 180;
-  //   var phi2 = lat2 * pi / 180;
-  //   var deltaPhi = (lat2 - lat1) * pi / 180;
-  //   var deltaLambda = (lon2 - lon1) * pi / 180;
-
-  //   var a = sin(deltaPhi / 2) * sin(deltaPhi / 2) +
-  //       cos(phi1) * cos(phi2) * sin(deltaLambda / 2) * sin(deltaLambda / 2);
-
-  //   var c = 2 * atan2(sqrt(a), sqrt(1 - a));
-
-  //   return R * c; // Distance in meters
-  // }
-
-  // void _findNearbyCars() {
-  //   final searchRadius = 2000.0; // 2000 meters radius
-
-  //   print(
-  //       'Current location: ${widget.startPlace.latitude}, ${widget.startPlace.longitude}');
-
-  //   _nearbyCars = _availableCars.where((carPosition) {
-  //     double distance = _calculateDistance(
-  //         LatLng(
-  //           widget.startPlace.latitude,
-  //           widget.startPlace.longitude,
-  //         ),
-  //         carPosition);
-  //     print(
-  //         'Car at ${carPosition.latitude}, ${carPosition.longitude} distance: $distance meters');
-  //     return distance <= searchRadius;
-  //   }).toList();
-
-  //   print('Found ${_nearbyCars.length} cars within $searchRadius meters');
-  // }
 
   Future<Map<String, dynamic>> _calculateRouteBetweenPoints(
       Place start, Place end) async {

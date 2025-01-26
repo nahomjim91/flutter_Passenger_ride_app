@@ -41,7 +41,7 @@ class _LocationPickerState extends State<LocationPicker> {
 
     setState(() => _places = []);
     FocusScope.of(context).unfocus();
-    Navigator.pop(context);
+    Navigator.pop(context); // Close the LocationPicker
   }
 
   Future<void> _showMapPicker(BuildContext context) async {
@@ -71,7 +71,9 @@ class _LocationPickerState extends State<LocationPicker> {
       if (result != null && result is Place) {
         _handlePlaceSelection(result);
       }
-    } catch (Exception) {}
+    } catch (e) {
+      print("Error: $e");
+    }
   }
 
   void _onSearchChanged(String value) async {
@@ -100,13 +102,7 @@ class _LocationPickerState extends State<LocationPicker> {
   }
 
   void _onPlaceSelected(Place place) {
-    setState(() {
-      widget.inputController.text = place.displayName;
-      widget.saveSearchPlace(place);
-    });
-
-    _focusNode.unfocus();
-    Navigator.pop(context);
+    _handlePlaceSelection(place);
   }
 
   @override

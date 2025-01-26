@@ -171,4 +171,43 @@ class ApiService {
       throw Exception('Error: $e');
     }
   }
+
+  Future<Driver?> getDriverById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$driverBaseUrl/get_driver/$id'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final driverJson = json.decode(response.body)['driver'];
+        return Driver.fromJson(driverJson);
+      } else {
+        throw Exception('Failed to get driver');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  Future<Place?> getDriverCoordinates(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$driverBaseUrl/get_driver_coordinates/$id'),
+        headers: _headers,
+      );
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body getDriverCoordinates: ${response.body}');
+      if (response.statusCode == 200) {
+        final driverJson = json.decode(response.body)['coordinates'];
+        return Place(
+            displayName: driverJson['displayName'],
+            latitude: double.parse(driverJson['latitude']),
+            longitude: double.parse(driverJson['longitude']));
+      } else {
+        throw Exception('Failed to get driver');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
 }

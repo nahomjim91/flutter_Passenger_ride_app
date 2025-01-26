@@ -4,23 +4,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/compont/Map/showSelectedMap.dart';
-import 'package:ride_app/compont/showModalUtilities.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
+import 'package:ride_app/driver.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/request_ride.dart';
 
 // ignore: must_be_immutable
-class RequestingRideDetails extends StatefulWidget {
-  RequestingRideDetails(
+class RideAccptedDetails extends StatefulWidget {
+  RideAccptedDetails(
       {super.key,
       required this.rquestRide,
       this.distance,
       this.duration,
       this.routePoints,
-      required this.addingStops,
-      required this.removedStops,
-      this.sendRideRequest,
+      required this.driverId,
       required this.toggledShareLocation,
       required this.shouldShareLocation});
 
@@ -29,26 +28,33 @@ class RequestingRideDetails extends StatefulWidget {
   double? duration;
   List<LatLng>? routePoints;
   bool shouldShareLocation;
-  void Function(Place) removedStops;
-  void Function()? sendRideRequest;
-  void Function(Place) addingStops;
+  int driverId;
   void Function() toggledShareLocation;
 
   @override
-  State<RequestingRideDetails> createState() => _RequestingRideDetailsState();
+  State<RideAccptedDetails> createState() => _RideAccptedDetailsState();
 }
 
-class _RequestingRideDetailsState extends State<RequestingRideDetails> {
+class _RideAccptedDetailsState extends State<RideAccptedDetails> {
   late SlidingPanelController _controller;
-  late TextEditingController _locationPickerInputController;
-  late TextEditingController _locationDestinationInputController;
+  bool _isLoading = false;
+  // bool widget.shouldShareLocation = false;
+  // ignore: unused_field
   int _counter = 0;
   late Passenger passenger;
+  Driver? driver;
+
+  Future<void> _loadDriver() async {
+    _isLoading = true;
+    Driver? driver = await ApiService().getDriverById(2);
+    setState(() {
+      this.driver = driver;
+    });
+    _isLoading = false;
+  }
 
   // ignore: unused_field
   Timer? _timer;
-  // ignore: unused_field
-  Key _mapKey = UniqueKey();
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -58,29 +64,18 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
     });
   }
 
-  String _formatTime(int seconds) {
-    final int minutes = seconds ~/ 60;
-    final int remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
-
   @override
   void initState() {
     super.initState();
     _startTimer();
-
     passenger = context.read<PassengerProvider>().passenger!;
-
-    _locationPickerInputController = TextEditingController();
-    _locationDestinationInputController = TextEditingController();
+    _loadDriver();
     _controller = SlidingPanelController();
   }
 
   @override
   void dispose() {
     _controller.removeListener;
-    _locationPickerInputController.dispose();
-    _locationDestinationInputController.dispose();
     _controller.dispose();
     _timer?.cancel();
     super.dispose();
@@ -101,39 +96,87 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
           topRight: Radius.circular(15),
         ),
       ),
-      panelContentBuilder: (controller, physics) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          pendingRequest(),
-          const SizedBox(height: 5),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: physics,
-              child: Column(
-                children: [
-                  addressPoints(),
-                  const SizedBox(height: 5),
-                  priceEstimateCard(
-                    price: '\$25.00',
-                    shareLocation: widget.shouldShareLocation,
-                    onLocationShareChanged: (value) {
-                      setState(() {
-                        widget.shouldShareLocation = value;
-                      });
-                      widget.toggledShareLocation;
-                    },
-                    onCarrierDetailsTap: () {
-                      // Handle carrier details tap
-                    },
+      panelContentBuilder: (controller, physics) => _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                driverDetails(
+                    durationInSeconds: (widget.duration ?? 0)
+                        .toInt(), // 51 minutes in seconds use duration
+                    driverName: (driver?.first_name ?? '') +
+                        ' ' +
+                        (driver?.last_name ?? ''),
+                    rating: 5.0,
+                    carColor: Colors.grey, // driver.vehicle_color
+                    carModel: driver!.vehicle_model,
+                    carPlateNumber: driver!.license_plate,
+                    personImageUrl: driver!.profile_photo!),
+                const SizedBox(height: 5),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: physics,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(3.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              selectorButton(
+                                  title: "Save your pickup location",
+                                  subtitle: 'For Fast access on feature rides',
+                                  icon: Container(
+                                    width: 36,
+                                    height: 38,
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                        child: Icon(Icons.bookmark,
+                                            color: Colors.black)),
+                                  ),
+                                  onTap: () {}),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        addressPoints(),
+                        const SizedBox(height: 5),
+                        priceEstimateCard(
+                          price: '\$25.00',
+                          shareLocation: widget.shouldShareLocation,
+                          onLocationShareChanged: (value) {
+                            setState(() {
+                              widget.shouldShareLocation = value;
+                            });
+                            widget.toggledShareLocation;
+                          },
+                          onCarrierDetailsTap: () {
+                            // Handle carrier details tap
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _buildCancelButton(),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 5),
-                  _buildCancelButton(),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
       leading: _buildLeadingWidget(context),
     );
   }
@@ -205,102 +248,74 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
     );
   }
 
-  Widget pendingRequest() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Driver responding...',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                _formatTime(_counter), //'00:06',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'This usually takes a few seconds',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
+  Widget driverDetails({
+    required int durationInSeconds,
+    required String driverName,
+    required double rating,
+    required Color carColor,
+    required String carModel,
+    required String carPlateNumber,
+    required String personImageUrl,
+  }) {
+    int durationInMinutes = (durationInSeconds / 60).ceil();
+
+    return Card(
+      margin: EdgeInsets.all(8.0),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Driver image
+            CircleAvatar(
+              backgroundImage: NetworkImage(personImageUrl),
+              radius: 30,
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Driver',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                width: 70,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  image: const DecorationImage(
-                      image: AssetImage('assets/images/driver(2).png'),
-                      fit: BoxFit.fill),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              )
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add,
-                  size: 20,
-                  color: Colors.black,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'New request',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Time left
+                  Text(
+                    '~$durationInMinutes min left',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 8),
+                  // Driver name and rating
+                  Text(
+                    '$driverName ★ $rating',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  // Car model and color
+                  Text(
+                    '$carModel - $carColor',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  // Car plate number
+                  Text(
+                    'Plate: $carPlateNumber',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -343,76 +358,26 @@ class _RequestingRideDetailsState extends State<RequestingRideDetails> {
             if (widget.rquestRide.stopsPlaces != null)
               for (int i = 0; i < widget.rquestRide.stopsPlaces!.length; i++)
                 Column(children: [
-                  Dismissible(
-                    direction: DismissDirection.endToStart,
-                    onDismissed: (direction) {
-                      widget.removedStops(widget.rquestRide.stopsPlaces![i]);
-                    },
-                    background: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 20.0),
+                  selectorButton(
+                    title: "Stop ${i + 1}",
+                    subtitle: widget.rquestRide.stopsPlaces![i].displayName,
+                    icon: Container(
+                      width: 32.0,
+                      height: 32.0,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                       child: const Icon(
-                        Icons.delete,
-                        color: Colors.white,
+                        Icons.location_on,
+                        color: Colors.black, // Yellow pickup icon background
                         size: 32.0,
                       ),
                     ),
-                    key: Key(i.toString()),
-                    child: selectorButton(
-                      title: "Stop ${i + 1}",
-                      subtitle: widget.rquestRide.stopsPlaces![i].displayName,
-                      icon: Container(
-                        width: 32.0,
-                        height: 32.0,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.black, // Yellow pickup icon background
-                          size: 32.0,
-                        ),
-                      ),
-                      onTap: () {
-                        showSelectedPlace(widget.rquestRide.stopsPlaces![i]);
-                      },
-                    ),
+                    onTap: () {
+                      showSelectedPlace(widget.rquestRide.stopsPlaces![i]);
+                    },
                   ),
-                  // Container(
-                  //     padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
-                  //     child: const Divider(height: 32)),
                 ]),
-            selectorButton(
-              title: null,
-              subtitle: 'Add Stop',
-              icon: Container(
-                width: 32.0,
-                height: 32.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: Colors.black, // Yellow pickup icon background
-                  size: 32.0,
-                ),
-              ),
-              onTap: () {
-                showLocationPicker(
-                  context,
-                  TextEditingController(),
-                  null,
-                  (Place? newPlace) {
-                    widget.addingStops(newPlace!);
-                    // Navigator.pop(context);
-                  },
-                );
-              },
-            ),
-            // Container(
-            //     padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
-            //     child: const Divider(height: 32)),
             selectorButton(
               title: "Destination",
               subtitle: widget.rquestRide.destinationPlace.displayName,
