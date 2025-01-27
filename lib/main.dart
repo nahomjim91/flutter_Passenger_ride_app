@@ -29,8 +29,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primaryColor: const Color(0xFF0C3B2E),
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0C3B2E)),
+          primaryColor: Colors.red,
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.purpleAccent),
           fontFamily: 'Poppins',
         ),
         home: AuthPage() // from poe

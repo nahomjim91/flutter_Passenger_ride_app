@@ -105,7 +105,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   const Icon(
                     Icons.directions_car_rounded,
                     size: 80,
-                    color: Color(0xFF0C3B2E),
+                    color: Colors.red,
                   ),
                   const SizedBox(height: 20),
                   const Text(
@@ -113,7 +113,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0C3B2E),
+                      color: Colors.red,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -210,7 +210,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         child: const Text(
                           'Login',
                           style: TextStyle(
-                            color: Color(0xFF0C3B2E),
+                            color: Colors.red,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

@@ -7,11 +7,14 @@ import 'package:ride_app/passenger.dart';
 import 'package:ride_app/request_ride.dart';
 
 class ApiService {
+  String? _apiKey;
+
   final String passengerBaseUrl = 'http://127.0.0.1:8000/api/passenger';
   final String driverBaseUrl = 'http://127.0.0.1:8000/api/driver';
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        if (_apiKey != null) 'X-API-Key': _apiKey!,
       };
   Future<List<Passenger>> getPassengers() async {
     try {
@@ -64,6 +67,7 @@ class ApiService {
       if (response.statusCode == 201) {
         final responseData = json.decode(response.body);
         if (responseData['passenger'] != null) {
+          _apiKey = responseData['passenger']['api_key'];
           return Passenger.fromJson(responseData['passenger']);
         } else {
           throw Exception('Invalid response format: passenger data is null');
@@ -195,8 +199,8 @@ class ApiService {
         Uri.parse('$driverBaseUrl/get_driver_coordinates/$id'),
         headers: _headers,
       );
-      debugPrint('Response status: ${response.statusCode}');
-      debugPrint('Response body getDriverCoordinates: ${response.body}');
+      // debugPrint('Response status: ${response.statusCode}');
+      // debugPrint('Response body getDriverCoordinates: ${response.body}');
       if (response.statusCode == 200) {
         final driverJson = json.decode(response.body)['coordinates'];
         return Place(

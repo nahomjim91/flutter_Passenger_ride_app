@@ -199,9 +199,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
             onTap: () {},
           ),
           _buildDrawerTile(
-            title: 'Support',
-            onTap: () => _navigateTo(context, 'support'),
-          ),
+              title: 'Support',
+              onTap: () => {} // _navigateTo(context, 'support'),
+              ),
           _buildDrawerTile(
             title: 'Safety',
             onTap: () {},

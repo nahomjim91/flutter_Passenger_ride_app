@@ -74,7 +74,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -97,18 +96,18 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const SizedBox(height: 40),
                   // App Icon
-                 const Icon(
+                  const Icon(
                     Icons.directions_car_rounded,
                     size: 80,
-                    color: Color(0xFF0C3B2E),
+                    color: Colors.red,
                   ),
                   const SizedBox(height: 20),
-                 const Text(
+                  const Text(
                     'Welcome Back!',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0C3B2E),
+                      color: Colors.red,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -139,14 +138,14 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>const Forgotpassword(),
+                            builder: (context) => const Forgotpassword(),
                           ),
                         );
                       },
                       child: const Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: Color(0xFF0C3B2E),
+                          color: Colors.red,
                         ),
                       ),
                     ),
@@ -201,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                         child: const Text(
                           'Sign Up',
                           style: TextStyle(
-                            color: Color(0xFF0C3B2E),
+                            color: Colors.red,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

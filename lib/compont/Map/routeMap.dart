@@ -13,7 +13,7 @@ class RouteMap extends StatefulWidget {
   final Place endPlace;
   final List<Place>? stops;
   final List<Driver> availableDriver;
-    final Driver? currentDriver; // Add this
+  final Driver? currentDriver; // Add this
   final Function(double distance, double duration, List<LatLng> routePoints)?
       onRouteCalculated;
 
@@ -60,11 +60,10 @@ class _RouteMapState extends State<RouteMap> {
     return LatLng(place.latitude, place.longitude);
   }
 
-
   Future<Map<String, dynamic>> _calculateRouteBetweenPoints(
       Place start, Place end) async {
     const String apiKey =
-        '5b3ce3597851110001cf624860414528c2074446beab88e10450715a';
+        '5b3ce3597851110001cf624868b6674e349e493eaee5d64bd6e4c7db';
     final String baseUrl =
         'https://api.openrouteservice.org/v2/directions/driving-car';
 
@@ -268,6 +267,15 @@ class _RouteMapState extends State<RouteMap> {
                     builder: (context) => _buildCarMarker(),
                   ),
                 ),
+                // Driver markers
+                ..._availableCars.map(
+                  (carPosition) => Marker(
+                    width: 70,
+                    height: 70,
+                    point: carPosition,
+                    builder: (context) => _buildCarMarker(),
+                  ),
+                ),
               ],
             ),
           ],
@@ -304,13 +312,35 @@ class _RouteMapState extends State<RouteMap> {
   }
 
   Widget _buildCarMarker() {
-    return Container(
-        width: 100,
-        height: 100,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage('assets/images/car(1).png'), fit: BoxFit.fill),
-        ));
+    return Column(
+      children: [
+        const SizedBox(height: 15),
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color.fromARGB(255, 225, 90, 53).withOpacity(0.3),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/car(1).png'),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget buildTimeCard({

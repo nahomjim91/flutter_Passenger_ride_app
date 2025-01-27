@@ -27,6 +27,7 @@ class _YourtripState extends State<Yourtrip> {
   List<LatLng>? routePoints;
   bool isLoading = false;
   late List<Driver> drivers;
+  String carType= "economy";
 
   // Key to force RouteMap rebuild when places change
   Key _mapKey = UniqueKey();
@@ -52,9 +53,9 @@ class _YourtripState extends State<Yourtrip> {
       isLoading = false; // Reset loading state
     });
 
-    debugPrint("New Pickup: ${widget.pickupPlace}");
-    debugPrint("New Destination: ${widget.destinationPlace}");
-    debugPrint("RouteMap key updated: $_mapKey");
+    // debugPrint("New Pickup: ${widget.pickupPlace}");
+    // debugPrint("New Destination: ${widget.destinationPlace}");
+    // debugPrint("RouteMap key updated: $_mapKey");
   }
 
   @override
@@ -104,6 +105,10 @@ class _YourtripState extends State<Yourtrip> {
           destinationPlace: widget.destinationPlace,
           pickupPlace: widget.pickupPlace,
           changePlaceValue: _updatePlaces,
+          carType: 'economy',
+          changeCarType: (value) => setState(() {
+            carType = value;
+          }),
         ),
 
         if (isLoading)

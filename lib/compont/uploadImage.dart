@@ -8,7 +8,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ride_app/passenger.dart';
-
+ 
 class Uploadimage {
   Future<void> pickAndUploadImage(BuildContext context, Passenger passenger,
       Function(String) onPhotoUpdated) async {

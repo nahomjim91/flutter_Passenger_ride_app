@@ -258,9 +258,9 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
                 Text(
                   label,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 16.0,
-                    fontWeight: FontWeight.normal,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 TextField(
@@ -295,16 +295,16 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
       child: ElevatedButton(
         onPressed: () => _showMapPicker(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFFCC00),
+          backgroundColor: Colors.red,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
         ),
-        child: Text(
+        child: const Text(
           'Map',
           style: TextStyle(
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
             fontSize: 14.0,
             fontWeight: FontWeight.bold,
           ),
@@ -320,7 +320,7 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
         Container(
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 87, 104, 101),
+            color: Colors.grey[100],
             boxShadow: const [
               BoxShadow(
                 color: Color.fromARGB(255, 211, 208, 208),
@@ -340,17 +340,17 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
                 label: 'Pick up',
                 hint: 'General Wingate Street',
                 icon: Icons.location_on,
-                iconColor: Theme.of(context).primaryColor,
-                iconBackgroundColor: const Color(0xFFFFCC00),
+                iconColor: Colors.white,
+                iconBackgroundColor: Colors.red,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 50),
-                child: const Divider(
-                  color: Colors.grey,
-                  height: 5,
-                  thickness: 3,
-                ),
-              ),
+              // Container(
+              //   padding: const EdgeInsets.symmetric(horizontal: 50),
+              //   child: const Divider(
+              //     color: Colors.grey,
+              //     height: 5,
+              //     thickness: 3,
+              //   ),
+              // ),
               _buildLocationInput(
                 isPickup: false,
                 controller: widget.locationDestinationInputController,
@@ -358,7 +358,7 @@ class _LocationSearchDoubleInputState extends State<LocationSearchDoubleInput> {
                 label: 'Destination',
                 hint: 'Where to?',
                 icon: Icons.flag,
-                iconColor: const Color(0xFFFFCC00),
+                iconColor: Colors.red,
                 iconBackgroundColor: Colors.transparent,
               ),
             ],

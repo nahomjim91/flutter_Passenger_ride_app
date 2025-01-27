@@ -5,6 +5,7 @@ import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:ride_app/Auth/api_service.dart';
+import 'package:ride_app/Auth/save_place_api.dart';
 import 'package:ride_app/compont/Map/showSelectedMap.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/driver.dart';
@@ -119,7 +120,10 @@ class _RideAccptedDetailsState extends State<RideAccptedDetails> {
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(3.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 0.0),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 3.0),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(18.0),
@@ -149,7 +153,19 @@ class _RideAccptedDetailsState extends State<RideAccptedDetails> {
                                         child: Icon(Icons.bookmark,
                                             color: Colors.black)),
                                   ),
-                                  onTap: () {}),
+                                  onTap: () async {
+                                    SavePlace savedPlace =
+                                        await SavePlaceApi.savePlace(
+                                      passengerId: passenger.id,
+                                      place: SavePlace(
+                                          placename: widget.rquestRide
+                                              .pickupPlace.displayName,
+                                          latitude: widget
+                                              .rquestRide.pickupPlace.latitude,
+                                          longitude: widget.rquestRide
+                                              .pickupPlace.longitude),
+                                    );
+                                  }),
                             ],
                           ),
                         ),
@@ -296,7 +312,7 @@ class _RideAccptedDetailsState extends State<RideAccptedDetails> {
                   SizedBox(height: 4),
                   // Car model and color
                   Text(
-                    '$carModel - $carColor',
+                    'carMode - $carModel - $carColor ',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey,

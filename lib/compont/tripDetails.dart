@@ -12,17 +12,20 @@ import 'package:ride_app/compont/Map/showSelectedMap.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/request_ride.dart';
 
-
 // ignore: must_be_immutable
 class TripDetails extends StatefulWidget {
   Place? destinationPlace;
   Place? pickupPlace;
+  String carType;
+  Function(String) changeCarType;
   final Function(Place pickupPlace, Place destinationPlace) changePlaceValue;
   TripDetails(
       {super.key,
       required this.destinationPlace,
       required this.pickupPlace,
-      required this.changePlaceValue});
+      required this.changePlaceValue,
+      required this.carType,
+      required this.changeCarType});
 
   @override
   _TripDetailsState createState() => _TripDetailsState();
@@ -33,7 +36,6 @@ class _TripDetailsState extends State<TripDetails> {
   late TextEditingController _locationPickerInputController;
   late TextEditingController _locationDestinationInputController;
   String _instructions = '';
-  String carType = 'Economy';
   late String _paymentOptions;
   late Widget opensearchField;
   bool isExpanded = false;
@@ -215,11 +217,11 @@ class _TripDetailsState extends State<TripDetails> {
                     ),
                     onPressed: () {
                       debugPrint(
-                          "\n\ncarType:$carType\n\npaymentMethod:$_paymentOptions\n\ninstructions:$_instructions");
+                          "\n\ncarType:${widget.carType}\n\npaymentMethod:$_paymentOptions\n\ninstructions:$_instructions");
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => RequestingRide(
                                 rquestRide: RequestRide(
-                                    carType: carType,
+                                    carType: widget.carType,
                                     pickupPlace: widget.pickupPlace!,
                                     destinationPlace: widget.destinationPlace!,
                                     paymentMethod: _paymentOptions,
@@ -337,12 +339,13 @@ class _TripDetailsState extends State<TripDetails> {
           Container(
               padding: EdgeInsets.fromLTRB(2, 0, 0, 0), child: const Divider()),
           CarSelectionWidget(
-              currntCarType: carType,
+              currntCarType: widget.carType,
               whichCar: (selectedCar) {
                 setState(() {
-                  carType = selectedCar;
-                  debugPrint("carType:$carType");
+                  widget.carType = selectedCar;
+                  debugPrint("carType:${widget.carType}");
                 });
+                // widget.changeCarType(selectedCar);
               })
         ],
       ),
@@ -409,12 +412,13 @@ class _TripDetailsState extends State<TripDetails> {
           ),
           const SizedBox(height: 5),
           CarSelectionWidget(
-              currntCarType: carType,
+              currntCarType: widget.carType,
               isDetails: true,
               whichCar: (selectedCar) {
                 setState(() {
-                  carType = selectedCar;
+                  widget.carType = selectedCar;
                 });
+                // widget.changeCarType(selectedCar);
               }),
           const SizedBox(height: 5),
           _buildPaymentSection(),
@@ -535,34 +539,10 @@ class _TripDetailsState extends State<TripDetails> {
     );
   }
 
-  // void _showPickupPicker() {
-  //   showLocationPicker(
-  //     context,
-  //     _locationPickerInputController,
-  //     widget.pickupPlace,
-  //     (Place? newPlace) {
-  //       widget.changePlaceValue(newPlace!, widget.destinationPlace!);
-  //       // restart route restart mapRoutes
-  //     },
-  //   );
-  // }
-
   void showSelectedPlace(Place place) {
     Navigator.of(context).push(
       MaterialPageRoute(
           builder: (context) => ShowSelectedMap(selectedPlace: place)),
     );
   }
-
-  // void _showDestinationPicker() {
-  //   showLocationPicker(
-  //     context,
-  //     _locationDestinationInputController,
-  //     widget.destinationPlace,
-  //     (Place? newPlace) {
-  //       widget.changePlaceValue(widget.pickupPlace!, newPlace!);
-  //       // restart route restart mapRoutes
-  //     },
-  //   );
-  // }
 }

@@ -10,7 +10,7 @@ import 'package:ride_app/compont/Map/map.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/scrollablePages/sliding_box.dart';
-import 'package:ride_app/scrollablePages/yourTrip.dart';
+import 'package:ride_app/Pages/yourTrip.dart';
 
 // ignore: must_be_immutable
 class HomePage extends StatefulWidget {
@@ -105,27 +105,17 @@ class _HomePageState extends State<HomePage> {
             onLocationPicked: handleLocationPicked,
             isDisplayOnly: true,
           ),
-
           ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) =>
-                        Yourtrip(destinationPlace: pointB, pickupPlace: pointA)
-                    // EditProfilePage(
-                    //     passenger: widget.passenger,
-                    //     setPassenger: (Passenger passenger) => setState(() {
-                    //           widget.passenger = passenger;
-                    //         })),
-                    ));
+                    builder: (context) => Yourtrip(
+                        destinationPlace: pointB, pickupPlace: pointA)));
               },
               child: const Icon(
                 Icons.add_box,
                 size: 100,
               )),
-
-          // sliding box
           const SlidingBoxDemo(),
-          // SlidingBoxDemo2()
         ],
       ),
     );

@@ -1,41 +1,125 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
-import 'package:ride_app/compont/Map/location_search.dart';
+import 'package:provider/provider.dart';
+import 'package:ride_app/Auth/save_place_api.dart';
+import 'package:ride_app/compont/Map/showSelectedMap.dart';
+import 'package:ride_app/compont/placeSearchWidget.dart';
+import 'package:ride_app/compont/showModalUtilities.dart';
+import 'package:ride_app/passenger.dart';
 
-class SavePlaces extends StatefulWidget {
-  const SavePlaces({super.key});
+class SavePlacesPage extends StatefulWidget {
+  const SavePlacesPage({super.key});
 
   @override
-  State<SavePlaces> createState() => _SavePlacesState();
+  State<SavePlacesPage> createState() => _SavePlacesPageState();
 }
 
-class _SavePlacesState extends State<SavePlaces> {
+class _SavePlacesPageState extends State<SavePlacesPage> {
   bool _isEditing = false;
-  bool _isHomeSaved = false;
-  bool _isWorkingSaved = true;
-  late SlidingPanelController _controller;
   late TextEditingController _locationPickerInputController;
+  List<SavePlace> _savedPlaces = [];
+  late String passengerId;
 
   @override
   void initState() {
     super.initState();
     _locationPickerInputController = TextEditingController();
-    _controller = SlidingPanelController();
-
-    // Only update UI when necessary
-    // _controller.addListener(() {
-    //   if (_controller.value.position <= 4) {
-    //     // Avoid recursive updates
-    //     // _controller.anchor();
-    //   }
-    // });
+    passengerId = context.read<PassengerProvider>().passenger!.id;
+    Future.microtask(() => _fetchSavedPlaces());
   }
 
   @override
   void dispose() {
     _locationPickerInputController.dispose();
-    // _controller.dispose();
     super.dispose();
+  }
+
+  // Fetch saved places from the API
+  Future<void> _fetchSavedPlaces() async {
+    try {
+      final places = await SavePlaceApi.getSavedPlaces(passengerId);
+      setState(() {
+        _savedPlaces = places;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to fetch saved places: $e')),
+        );
+      }
+    }
+  }
+
+  // Save a new place
+  Future<void> _savePlace(Place place) async {
+    try {
+      final savedPlace = await SavePlaceApi.savePlace(
+        passengerId: passengerId,
+        place: SavePlace(
+            placename: place.displayName,
+            latitude: place.latitude,
+            longitude: place.longitude),
+      );
+      setState(() {
+        _savedPlaces.add(savedPlace);
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Place saved successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save place: $e')),
+        );
+      }
+    }
+  }
+
+  // Update a saved place
+  Future<void> _updatePlace(SavePlace place) async {
+    try {
+      final updatedPlace = await SavePlaceApi.updatePlace(place: place);
+      setState(() {
+        final index = _savedPlaces.indexWhere((p) => p.id == updatedPlace.id);
+        if (index != -1) {
+          _savedPlaces[index] = updatedPlace;
+        }
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Place updated successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update place: $e')),
+        );
+      }
+    }
+  }
+
+  // Delete a saved place
+  Future<void> _deletePlace(String saveplaceId) async {
+    try {
+      await SavePlaceApi.deletePlace(saveplaceId);
+      setState(() {
+        _savedPlaces.removeWhere((place) => place.id == saveplaceId);
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Place deleted successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete place: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -97,24 +181,25 @@ class _SavePlacesState extends State<SavePlaces> {
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: Column(
-                    children: [
-                      _buildSavedPlaceTile(
-                        icon: Icons.home,
-                        label: 'Add home',
-                        isSaved: _isHomeSaved,
-                      ),
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(43, 0, 20, 0),
-                        height: 1,
-                        color: Colors.grey[300],
-                      ),
-                      _buildSavedPlaceTile(
-                        icon: Icons.work_outline_rounded,
-                        label: _isWorkingSaved ? 'Work' : 'Add work',
-                        isSaved: _isWorkingSaved,
-                      ),
-                    ],
+                  child: ListView.builder(
+                    itemCount: _savedPlaces.length,
+                    itemBuilder: (context, index) {
+                      final place = _savedPlaces[index];
+                      return _buildSavedPlaceTile(
+                        place: place,
+                        icon: Icons.place,
+                        label: place.placename,
+                        isSaved: true,
+                        onEdit: () async {
+                          final updatedPlace =
+                              await _showEditPlaceDialog(place);
+                          if (updatedPlace != null) {
+                            await _updatePlace(updatedPlace);
+                          }
+                        },
+                        onDelete: () => _deletePlace(place.id.toString()),
+                      );
+                    },
                   ),
                 ),
                 if (!_isEditing)
@@ -122,47 +207,34 @@ class _SavePlacesState extends State<SavePlaces> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Center(
                       child: ElevatedButton(
-                        onPressed: () => _controller.expand(),
+                        onPressed: () => showLocationPicker(
+                          context,
+                          TextEditingController(),
+                          null,
+                          (Place? newPlace) {
+                            _savePlace(newPlace!);
+                          },
+                        ),
                         style: ElevatedButton.styleFrom(
                           maximumSize: const Size(double.infinity, 100),
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          backgroundColor: Colors.grey[300],
+                          backgroundColor: Colors.red,
                         ),
-                        child: const Text('Add place'),
+                        child: const Text(
+                          'Add place',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ),
                   ),
               ],
-            ),
-          ),
-          SlidingPanel.scrollableContent(
-            controller: _controller,
-            config: SlidingPanelConfig(
-              anchorPosition: 0,
-              expandPosition: MediaQuery.of(context).size.height - 100,
-            ),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ),
-            ),
-            panelContentBuilder: (controller, physics) => Container(
-              alignment: Alignment.topCenter,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
-                ),
-              ),
-              child: LocationSearch(
-                locationPickerInputController: _locationPickerInputController,
-              ),
             ),
           ),
         ],
@@ -171,13 +243,20 @@ class _SavePlacesState extends State<SavePlaces> {
   }
 
   Widget _buildSavedPlaceTile({
+    required SavePlace place,
     required IconData icon,
     required String label,
     required bool isSaved,
+    VoidCallback? onEdit,
+    VoidCallback? onDelete,
   }) {
     return InkWell(
       onTap: () {
         // Handle the tap event
+        showSelectedPlace(Place(
+            displayName: place.placename,
+            latitude: place.latitude,
+            longitude: place.longitude));
         print('Tapped on $label');
       },
       child: Container(
@@ -192,24 +271,69 @@ class _SavePlacesState extends State<SavePlaces> {
                 Text(label),
               ],
             ),
-            Icon(
-              isSaved
-                  ? _isEditing
-                      ? Icons.edit
-                      : Icons.arrow_forward_ios
-                  : Icons.add,
-              color: Colors.grey[500],
-            ),
+            if (_isEditing)
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.grey),
+                    onPressed: onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: onDelete,
+                  ),
+                ],
+              ),
+            if (!_isEditing)
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey,
+              ),
           ],
         ),
       ),
     );
   }
-}
 
-class SavedPlace {
-  String name;
-  String address;
+  // Show a dialog to edit a saved place
+  Future<SavePlace?> _showEditPlaceDialog(SavePlace place) async {
+    final placenameController = TextEditingController(text: place.placename);
+    return showDialog<SavePlace>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Place'),
+          content: TextField(
+            controller: placenameController,
+            decoration: const InputDecoration(labelText: 'Place Name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final updatedPlace = SavePlace(
+                  placename: placenameController.text,
+                  latitude: place.latitude,
+                  longitude: place.longitude,
+                  id: place.id,
+                );
+                Navigator.pop(context, updatedPlace);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-  SavedPlace({required this.name, required this.address});
+  void showSelectedPlace(Place place) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+          builder: (context) => ShowSelectedMap(selectedPlace: place)),
+    );
+  }
 }

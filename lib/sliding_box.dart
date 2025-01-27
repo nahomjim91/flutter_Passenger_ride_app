@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sliding_panel/flutter_sliding_panel.dart';
 import 'package:ride_app/compont/Map/locationPicker2InputFiled.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
-import 'package:ride_app/scrollablePages/yourTrip.dart';
+import 'package:ride_app/Pages/yourTrip.dart';
 
 class SlidingBoxDemo extends StatefulWidget {
   const SlidingBoxDemo({super.key});

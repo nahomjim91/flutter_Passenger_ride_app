@@ -82,9 +82,15 @@ class _DiscountPageState extends State<DiscountPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Colors.grey[300],
+                    backgroundColor: Colors.red,
                   ),
-                  child: const Text('Activate'),
+                  child: const Text(
+                    'Activate',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w400),
+                  ),
                 ),
               ),
             ],
@@ -93,7 +99,6 @@ class _DiscountPageState extends State<DiscountPage> {
       },
     );
   }
-
 
   Widget _buildClickableItem({
     required IconData icon,

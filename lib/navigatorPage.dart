@@ -45,7 +45,7 @@ class NavigatorPage extends StatelessWidget {
                       );
                     case 'savedPlaces':
                       return MaterialPageRoute(
-                          builder: (_) => const SavePlaces());
+                          builder: (_) => const SavePlacesPage());
                     default:
                       return MaterialPageRoute(
                         builder: (_) => const Center(

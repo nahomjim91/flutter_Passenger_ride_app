@@ -5,7 +5,7 @@ Widget ButtonsPrimary(isLoading, String label, onTap) {
   return ElevatedButton(
     onPressed: isLoading ? null : onTap,
     style: ElevatedButton.styleFrom(
-      backgroundColor: Color(0xFF0C3B2E),
+      backgroundColor: Colors.red,
       padding: EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -54,7 +54,7 @@ Widget ButtonWitGoogle(isloading, toggleLoading) {
         : const Text('Sign up with Google'),
     style: OutlinedButton.styleFrom(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      side: const BorderSide(color: Color(0xFF0C3B2E)),
+      side: const BorderSide(color: Colors.red),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -124,7 +124,6 @@ Widget addressPointes(
         (enabledtrailing ?? false) ? const Icon(Icons.arrow_forward_ios) : null,
   );
 }
-
 
 class MapButton extends StatelessWidget {
   final IconData icon;
