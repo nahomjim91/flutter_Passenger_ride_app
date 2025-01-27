@@ -28,6 +28,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _phonecontroller = TextEditingController();
   final _obscureTextNotifier = ValueNotifier<bool>(true);
   bool isLoading = false;
+  String? signInMethod = ProfileAuthHandler().getSignInMethod();
 
   @override
   void initState() {
@@ -115,32 +116,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                       const SizedBox(height: 16),
                       // Password
-                      CustomInputFiled(_passwordcontroller, 'Password',
-                          ValueNotifier(true), Icons.lock, 'password'),
+                      if (signInMethod == 'email')
+                        CustomInputFiled(_passwordcontroller, 'Password',
+                            ValueNotifier(true), Icons.lock, 'password'),
                       const SizedBox(height: 8),
                       // Forgot Password
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            // Navigate to forgot password page
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RestPassword(
-                                  emailController: _emailcontroller,
+                      if (signInMethod == 'email')
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              // Navigate to forgot password page
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RestPassword(
+                                    emailController: _emailcontroller,
+                                  ),
                                 ),
+                              );
+                            },
+                            child: const Text(
+                              'Rest Password?',
+                              style: TextStyle(
+                                color: Color(0xFF0C3B2E),
                               ),
-                            );
-                          },
-                          child: const Text(
-                            'Rest Password?',
-                            style: TextStyle(
-                              color: Color(0xFF0C3B2E),
                             ),
                           ),
                         ),
-                      ),
                       const SizedBox(height: 12),
 
                       Row(
@@ -180,25 +183,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   setState(() {
                                     isLoading = true;
                                   });
-
                                   try {
-                                    final currentUser =
-                                        FirebaseAuth.instance.currentUser;
-                                    final providerId = (currentUser != null &&
-                                            currentUser.providerData.isNotEmpty)
-                                        ? currentUser.providerData[0].providerId
-                                        : null;
-
-                                    // Show appropriate verification UI based on provider
-                                    if (providerId == 'google.com') {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'Please verify your Google account')),
-                                      );
-                                    }
-
                                     final updatedPassenger = Passenger(
                                       id: passenger.id,
                                       first_name: _firstNamecontroller.text,
@@ -228,7 +213,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       ApiService().updatePassenger(
                                         updatedPassenger,
                                       );
-                                      context.read<PassengerProvider>().updatePassenger(updatedPassenger);
+                                      context
+                                          .read<PassengerProvider>()
+                                          .updatePassenger(updatedPassenger);
                                     }
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(

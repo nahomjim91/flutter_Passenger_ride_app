@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/passenger.dart';
@@ -7,38 +8,45 @@ class ProfileAuthHandler {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
+// final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  String? getSignInMethod() {
+    try {
+      final User? currentUser = _auth.currentUser;
+      if (currentUser == null) return null;
+
+      // Get the provider data
+      final providerData = currentUser.providerData;
+
+      // Check if the user has any providers
+      if (providerData.isEmpty) return null;
+
+      // Get the first provider ID
+      final providerId = providerData[0].providerId;
+
+      // Return the sign-in method
+      switch (providerId) {
+        case 'google.com':
+          return 'google';
+        case 'password':
+          return 'email';
+        default:
+          return null;
+      }
+    } catch (e) {
+      print('Error checking sign-in method: $e');
+      return null;
+    }
+  }
+
   Future<bool> verifyPassword(String password) async {
+    String? signInMethod = ProfileAuthHandler().getSignInMethod();
     try {
       final User? currentUser = _auth.currentUser;
       if (currentUser == null) return false;
 
-      // Check the user's providers directly from the user object
-      final providerData = currentUser.providerData;
-
       // Find the provider ID the user is using
-      final providerId =
-          providerData.isNotEmpty ? providerData[0].providerId : null;
-
-      if (providerId == 'google.com') {
-        // For Google users, verify by attempting to reauthenticate with Google
-        try {
-          final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-          if (googleUser == null) return false;
-
-          final GoogleSignInAuthentication googleAuth =
-              await googleUser.authentication;
-          final credential = GoogleAuthProvider.credential(
-            accessToken: googleAuth.accessToken,
-            idToken: googleAuth.idToken,
-          );
-
-          await currentUser.reauthenticateWithCredential(credential);
-          return true;
-        } catch (e) {
-          print('Error reauthenticating with Google: $e');
-          return false;
-        }
-      } else if (providerId == 'password') {
+      if (signInMethod == 'email') {
         // For email/password users, verify the password
         try {
           final credential = EmailAuthProvider.credential(
@@ -51,8 +59,9 @@ class ProfileAuthHandler {
           if (e.code == 'wrong-password') {
             return false;
           }
-          throw e;
         }
+      }else if (signInMethod == 'google') {
+        return true;
       }
 
       return false;
@@ -82,15 +91,6 @@ class ProfileAuthHandler {
           throw Exception('Invalid password');
         }
       }
-      // For Google users, require Google reauthentication
-      else if (providerId == 'google.com') {
-        bool isGoogleAuthValid = await verifyPassword(
-            ''); // Password param is ignored for Google auth
-        if (!isGoogleAuthValid) {
-          throw Exception('Google authentication failed');
-        }
-      }
-
       // Update display name if changed
       if (currentUser.displayName !=
           '${updatedPassenger.first_name} ${updatedPassenger.last_name}') {

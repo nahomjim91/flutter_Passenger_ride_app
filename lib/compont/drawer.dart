@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ride_app/Auth/api_service.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/uploadImage.dart';
 import 'package:ride_app/passenger.dart';
@@ -36,8 +37,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 (String newPhotoPath) {
                   setState(() {
                     widget.passenger.profile_photo = newPhotoPath;
+                    debugPrint(
+                        "Passenger: ${widget.passenger.toJson().toString()}");
                     Firebaseutillies()
                         .savePassengerToFirestore(widget.passenger);
+                    ApiService().updatePassenger(widget.passenger);
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

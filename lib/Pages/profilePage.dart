@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ride_app/Auth/api_service.dart';
+import 'package:ride_app/Auth/profileAuthHandler.dart';
 import 'package:ride_app/compont/firebaseUtillies.dart';
 import 'package:ride_app/compont/uploadImage.dart';
 import 'package:ride_app/passenger.dart';
@@ -15,7 +17,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-  Passenger passenger = Provider.of<PassengerProvider>(context).passenger!;
+    Passenger passenger = Provider.of<PassengerProvider>(context).passenger!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -96,6 +98,9 @@ class _ProfilePicState extends State<ProfilePic> {
   @override
   Widget build(BuildContext context) {
     Passenger passenger = Provider.of<PassengerProvider>(context).passenger!;
+    final imageUrl = passenger.profile_photo!.contains("http")
+        ? passenger.profile_photo!
+        : "http://127.0.0.1:8000${passenger.profile_photo!}";
     return Container(
       padding: EdgeInsets.all(widget.resized ? 10 : 16.0),
       margin: EdgeInsets.symmetric(vertical: widget.resized ? 10 : 16.0),
@@ -114,7 +119,7 @@ class _ProfilePicState extends State<ProfilePic> {
             backgroundColor: Colors.grey.shade800,
             child: ClipOval(
               child: Image.network(
-                "http://127.0.0.1:8000${passenger.profile_photo!}",
+                imageUrl, //"http://127.0.0.1:8000${passenger.profile_photo!}",
                 width: widget.resized ? 120 : 100,
                 height: widget.resized ? 120 : 100,
                 fit: BoxFit.cover,
@@ -159,8 +164,8 @@ class _ProfilePicState extends State<ProfilePic> {
                 (String newPhotoPath) {
                   setState(() {
                     passenger.profile_photo = newPhotoPath;
-                    Firebaseutillies()
-                        .savePassengerToFirestore(passenger);
+                    Firebaseutillies().savePassengerToFirestore(passenger);
+                    ApiService().updatePassenger(passenger);
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
