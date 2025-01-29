@@ -20,7 +20,6 @@ class RequestingRideDetails extends StatefulWidget {
       this.routePoints,
       required this.addingStops,
       required this.removedStops,
-      this.sendRideRequest,
       required this.toggledShareLocation,
       required this.shouldShareLocation});
 
@@ -30,7 +29,6 @@ class RequestingRideDetails extends StatefulWidget {
   List<LatLng>? routePoints;
   bool shouldShareLocation;
   void Function(Place) removedStops;
-  void Function()? sendRideRequest;
   void Function(Place) addingStops;
   void Function() toggledShareLocation;
 

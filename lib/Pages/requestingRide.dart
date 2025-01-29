@@ -11,7 +11,6 @@ import 'package:ride_app/compont/Map/routeMap.dart';
 import 'package:ride_app/driver.dart';
 import 'package:ride_app/passenger.dart';
 import 'package:ride_app/request_ride.dart';
-// import 'package:ride_app/scrollablePages/accptedRideDetails.dart';
 import 'package:ride_app/scrollablePages/requestingRideDetail.dart';
 
 class RequestingRide extends StatefulWidget {
@@ -36,10 +35,11 @@ class _RequestingRideState extends State<RequestingRide> {
   bool isLoading = false;
   bool isRequesting = false;
   bool shouldShareLocation = false;
+  bool isRideAccepted = false;
+  bool _isDisposed = false; // Track disposal
 
   UniqueKey _mapKey = UniqueKey();
 
-  // Server API endpoint
   final String serverUrl = 'http://127.0.0.1:8000/api';
 
   @override
@@ -50,112 +50,97 @@ class _RequestingRideState extends State<RequestingRide> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    //
+  void dispose() {
+    _isDisposed = true; // Mark as disposed
+    _timer?.cancel();
+    super.dispose();
   }
 
   /// Load nearby drivers from the API
+
   Future<void> _loadDrivers() async {
-    setState(() => isLoading = true);
+    if (_isDisposed) return;
+    if (mounted) setState(() => isLoading = true);
     try {
       final fetchedDrivers =
           await ApiService().getDriverAround(widget.rquestRide.pickupPlace);
 
-      if (fetchedDrivers.isNotEmpty) {
-        setState(() => drivers = fetchedDrivers);
-        debugPrint("Drivers loaded: ${drivers.length}");
+      if (!_isDisposed && fetchedDrivers.isNotEmpty) {
+        if (mounted) setState(() => drivers = fetchedDrivers);
         _sendRideRequest();
-      } else {
-        debugPrint("No drivers found near the pickup location.");
       }
     } catch (e) {
-      debugPrint("Error loading drivers: $e");
+      if (!_isDisposed && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error loading drivers')),
+        );
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
-  /// Send ride request to drivers with pooling logic
   Future<void> _sendRideRequest() async {
-    setState(() => isRequesting = true);
+    if (_isDisposed) return;
+    if (mounted) setState(() => isRequesting = true);
     try {
       if (drivers.isEmpty) {
-        debugPrint("No drivers available.");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('No drivers available. Please try again later.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No drivers available')),
+          );
+        }
         return;
       }
 
-      // Create a ride request and assign it to the first driver
       final rideRequestId =
           await _createRideRequest(passenger.id, drivers[0].id as int);
-      if (rideRequestId == null) {
-        throw Exception('Failed to create ride request');
-      }
+      if (rideRequestId == null || _isDisposed) return;
 
       for (int i = 0; i < drivers.length; i++) {
+        if (_isDisposed || isRideAccepted) break;
+
         final driver = drivers[i];
-        debugPrint(
-            'Sending request to driver ${driver.id} (${driver.first_name})');
-
-        // Wait for driver response (5 seconds)
         final isAccepted = await _waitForDriverResponse(rideRequestId);
-        if (isAccepted) {
-          debugPrint(
-              'Driver ${driver.id} (${driver.first_name}) accepted the request');
-          setState(() {
-            currentDriver = driver;
-            isDriverFound = true;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Driver ${driver.first_name} accepted your request!')),
-          );
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => RideAccepted(
-                rideRequestId: rideRequestId,
-                requestRide: widget.rquestRide,
-                driver: currentDriver!,
-                shouldShareLocation: shouldShareLocation,
-              ),
-            ),
-          );
-          break; // Exit the loop if a driver accepts
-        } else {
-          debugPrint(
-              'Driver ${driver.id} (${driver.first_name}) did not respond or rejected the request');
+        if (_isDisposed) break;
 
-          // Reassign the ride request to the next driver (if available)
-          if (i < drivers.length - 1) {
-            final nextDriver = drivers[i + 1];
-            await _reassignRideRequest(rideRequestId, nextDriver.id as int);
-          } else {
-            debugPrint('No more drivers available');
+        if (isAccepted) {
+          if (mounted) {
+            setState(() {
+              currentDriver = driver;
+              isDriverFound = true;
+              isRideAccepted = true;
+            });
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text(
-                      'No drivers accepted your request. Please try again.')),
+              SnackBar(content: Text('Driver ${driver.first_name} accepted!')),
+            );
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => RideAccepted(
+                  rideRequestId: rideRequestId,
+                  requestRide: widget.rquestRide,
+                  driver: currentDriver!,
+                  shouldShareLocation: shouldShareLocation,
+                ),
+              ),
             );
           }
+          break;
+        } else if (i < drivers.length - 1) {
+          await _reassignRideRequest(rideRequestId, drivers[i + 1].id as int);
         }
       }
     } catch (e) {
-      debugPrint('Error in _sendRideRequest: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Failed to find a driver. Please try again.')),
-      );
+      if (!_isDisposed && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to find a driver')),
+        );
+      }
     } finally {
-      setState(() => isRequesting = false);
+      if (mounted) setState(() => isRequesting = false);
     }
   }
 
-  /// Create a ride request and assign it to a driver
   Future<int?> _createRideRequest(String passengerId, int driverId) async {
     try {
       final response = await http.post(
@@ -168,25 +153,14 @@ class _RequestingRideState extends State<RequestingRide> {
         }),
       );
 
-      debugPrint(
-          'Create Ride Request Response: ${response.statusCode} - ${response.body}');
-
       if (response.statusCode == 201) {
         final responseData = json.decode(response.body);
-        final rideRequest =
-            responseData['rideRequest']; // Access the nested object
-        if (rideRequest != null && rideRequest['id'] != null) {
-          return rideRequest['id']; // Return the ride request ID
-        } else {
-          throw Exception('Ride request ID not found in response');
-        }
-      } else {
-        throw Exception('Failed to create ride request: ${response.body}');
+        return responseData['rideRequest']?['id'];
       }
     } catch (e) {
-      debugPrint('Error in _createRideRequest: $e');
-      return null;
+      debugPrint('Error creating ride request: $e');
     }
+    return null;
   }
 
   /// Reassign the ride request to the next driver
@@ -215,28 +189,23 @@ class _RequestingRideState extends State<RequestingRide> {
   /// Wait for driver response (polling every second for 5 seconds)
   Future<bool> _waitForDriverResponse(int rideRequestId) async {
     for (int i = 0; i < 5; i++) {
-      await Future.delayed(Duration(seconds: 2)); // Wait for 1 second
+      await Future.delayed(const Duration(seconds: 2));
+      if (_isDisposed) return false;
+
       try {
         final response = await http.get(
           Uri.parse('$serverUrl/ride-requests/$rideRequestId'),
         );
-
-        debugPrint(
-            'Polling Ride Request Response: ${response.statusCode} - ${response.body}');
-
         if (response.statusCode == 200) {
           final rideRequest = json.decode(response.body);
-          if (rideRequest['status'] == 'accepted') {
-            return true; // Driver accepted the request
-          } else if (rideRequest['status'] == 'rejected') {
-            return false; // Driver rejected the request
-          }
+          if (rideRequest['status'] == 'accepted') return true;
+          if (rideRequest['status'] == 'rejected') return false;
         }
       } catch (e) {
-        debugPrint('Error in _waitForDriverResponse: $e');
+        debugPrint('Error polling response: $e');
       }
     }
-    return false; // No response within 5 seconds
+    return false;
   }
 
   /// Add a new stop to the ride and restart the request process
@@ -276,12 +245,6 @@ class _RequestingRideState extends State<RequestingRide> {
   }
 
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -314,7 +277,6 @@ class _RequestingRideState extends State<RequestingRide> {
           rquestRide: widget.rquestRide,
           addingStops: addingStops,
           removedStops: _removeStops,
-          sendRideRequest: _sendRideRequest,
         ),
       ],
     );

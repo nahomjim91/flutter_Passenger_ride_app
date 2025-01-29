@@ -113,7 +113,8 @@ class _HomePageState extends State<HomePage> {
               },
               child: const Icon(
                 Icons.add_box,
-                size: 100,
+                color: Colors.red,
+                size: 40,
               )),
           const SlidingBoxDemo(),
         ],

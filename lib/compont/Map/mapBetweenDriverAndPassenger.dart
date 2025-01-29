@@ -146,174 +146,89 @@ class _MapBetweenDriverAndPassengerState
   }
 
   Widget _markersPosition() {
-    return !widget.isRideRequestStarted
-        ? MarkerLayer(
-            markers: [
-              // Passenger Marker
-              Marker(
-                width: 100,
-                height: 100,
-                point: LatLng(
-                  widget.startLocation.latitude,
-                  widget.startLocation.longitude,
-                ),
-                builder: (context) => Column(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.withOpacity(0.3),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.person_pin_circle,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Passenger',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red.shade700,
-                      ),
+    return MarkerLayer(
+      markers: [
+        // Passenger Marker
+        Marker(
+          width: 100,
+          height: 100,
+          point: LatLng(
+            widget.startLocation.latitude,
+            widget.startLocation.longitude,
+          ),
+          builder: (context) => Column(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 2,
                     ),
                   ],
+                ),
+                child: const Icon(
+                  Icons.person_pin_circle,
+                  color: Colors.white,
+                  size: 30,
                 ),
               ),
-              // Driver Marker
-              Marker(
-                width: 100,
-                height: 100,
-                point: LatLng(
-                  widget.endLocation.latitude,
-                  widget.endLocation.longitude,
-                ),
-                builder: (context) => Column(
-                  children: [
-                    const SizedBox(height: 15),
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromARGB(255, 225, 90, 53)
-                                .withOpacity(0.3),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/car(1).png'),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 4),
+              Text(
+                'Passenger',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
                 ),
               ),
             ],
-          )
-        : MarkerLayer(
-            markers: [
-              // distnation Marker
-              Marker(
-                width: 100,
-                height: 100,
-                point: LatLng(
-                  widget.endLocation.latitude,
-                  widget.endLocation.longitude,
-                ),
-                builder: (context) => Column(
-                  children: [
-                    const SizedBox(height: 15),
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromARGB(255, 225, 90, 53)
-                                .withOpacity(0.3),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/car(1).png'),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
+          ),
+        ),
+        // Driver Marker
+        Marker(
+          width: 100,
+          height: 100,
+          point: LatLng(
+            widget.endLocation.latitude,
+            widget.endLocation.longitude,
+          ),
+          builder: (context) => Column(
+            children: [
+              const SizedBox(height: 15),
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromARGB(255, 225, 90, 53)
+                          .withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
-              ),
-              // Driver Marker
-              Marker(
-                width: 100,
-                height: 100,
-                point: LatLng(
-                  widget.startLocation.latitude,
-                  widget.startLocation.longitude,
-                ),
-                builder: (context) => Column(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.withOpacity(0.3),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.flag_circle_sharp,
-                        color: Colors.white,
-                        size: 30,
-                      ),
+                child: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/car(1).png'),
+                      fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'desnation',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red.shade700,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
-          );
+          ),
+        ),
+      ],
+    );
   }
 }

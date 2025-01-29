@@ -9,7 +9,7 @@ import 'package:ride_app/compont/ongoingCard.dart';
 import 'package:ride_app/compont/placeSearchWidget.dart';
 import 'package:ride_app/driver.dart';
 import 'package:ride_app/request_ride.dart';
-import 'package:ride_app/scrollablePages/accptedRideDetails.dart';
+import 'package:ride_app/scrollablePages/rideAccptedDetails.dart';
 import 'package:geolocator/geolocator.dart';
 
 class RideAccepted extends StatefulWidget {
@@ -97,6 +97,10 @@ class _RideAcceptedState extends State<RideAccepted> {
         final rideRequest = json.decode(response.body);
         if (rideRequest['status'] == 'started') {
           return true; // Driver starte the request
+        } else if (rideRequest['status'] == 'ended') {
+          // Navigator. (context, , predicate)
+
+          return false; // Driver ended the request
         }
         return false; // Driver ... the request
       }
